@@ -12,6 +12,7 @@ See [04-auth-flow.md](04-auth-flow.md) for token details.
 | POST | `/api/auth/google` | `{ idToken }` | `{ user, accessToken, refreshToken }` |
 | POST | `/api/auth/refresh` | `{ refreshToken }` | `{ accessToken }` |
 | GET | `/api/auth/me` | — (protected) | `{ user }` |
+| PATCH | `/api/auth/me` | `{ name?, currency?, monthlyBudget? }` | `{ user }` — added in Phase 2 so the mobile Budgets/Profile tabs can set `User.monthlyBudget` (the field existed on the model since Phase 1 but nothing wrote to it) |
 
 ## Parser — core feature (protected)
 

@@ -77,3 +77,12 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
 export const DEFAULT_CATEGORY_NAMES = DEFAULT_CATEGORIES.map((c) => c.name);
 
 export const OVERALL_BUDGET_SENTINEL = "Overall";
+
+const MISCELLANEOUS = DEFAULT_CATEGORIES[DEFAULT_CATEGORIES.length - 1];
+
+/** Looks up icon/color for a category name, falling back to the Miscellaneous appearance
+ * for user-created categories (which have no icon/color of their own). */
+export function getCategoryMeta(name: string): Pick<DefaultCategory, "icon" | "color"> {
+  const match = DEFAULT_CATEGORIES.find((c) => c.name === name);
+  return match ?? { icon: MISCELLANEOUS.icon, color: MISCELLANEOUS.color };
+}

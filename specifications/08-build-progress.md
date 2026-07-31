@@ -29,7 +29,27 @@ Not built in Phase 1 (intentionally deferred per the brief's phase plan):
 
 ## Phase 2 — Mobile App (MVP)
 
-Status: **not started**
+Status: **complete** for what's buildable/verifiable without a physical device or simulator (none
+available in this environment — see verification log below).
+
+- [x] Expo project scaffold (SDK 57, Expo Router, TypeScript) restructured to match the spec's
+      folder layout (`app/`, `components/`, `hooks/`, `services/`, `store/`, `utils/` at project root)
+- [x] `services/api.ts` (axios + auth interceptors with refresh-on-401), `store/authStore.ts`
+      (SecureStore-persisted), `store/transactionStore.ts`, currency/date utils
+- [x] Auth screens (login/register) + `Stack.Protected`-based auth gating in `app/_layout.tsx`
+- [x] Tab navigation (`(tabs)`: Home, Transactions, Budgets, Profile) + Home screen (monthly summary,
+      category breakdown chart, recent transactions)
+- [x] Full transaction list with category filters, manual add form, detail/edit screen
+- [x] Share-intent handler — `app/+native-intent.ts`, `ShareIntentProvider` wiring, confirmation
+      screen with duplicate/error/empty states (see [09-mobile-app.md](09-mobile-app.md))
+- [x] Budgets tab (overall monthly budget vs. spend, editable) + Profile tab (account info, logout)
+- [x] `PATCH /api/auth/me` added to the backend so the Budgets tab is genuinely functional (see
+      [03-api-endpoints.md](03-api-endpoints.md))
+- [x] `getCategoryMeta()` helper added to `packages/shared/categories.ts` for icon/color lookups
+      shared by `CategoryPill`/`CategoryPicker`/`SpendingChart`
+
+Not built in Phase 2 (intentionally deferred): Google OAuth on mobile (`expo-auth-session`) — email/
+password only for now; offline queue/sync (Phase 5); push notifications (Phase 5).
 
 ## Phase 3 — Intelligence Layer
 
@@ -76,6 +96,29 @@ The code path (`callGemini` → JSON parse → `isValidParseResult` shape check 
 should be exercised with a real key before shipping — this is the highest-risk untested piece of
 Phase 1.
 
+## Verification log (Phase 2)
+
+No iOS Simulator, Android emulator, or physical device was available in this environment (no Xcode,
+no Android SDK — confirmed via `xcrun simctl` / `which emulator adb` all failing), and
+`expo-share-intent` specifically requires a custom dev client rather than Expo Go, so on-device
+verification of the share-intent flow (the most important untested piece) was not possible here. What
+was verified:
+
+1. `npx tsc --noEmit` — clean, zero errors across the whole app.
+2. `npx expo export --platform web` — full static export succeeded and pre-rendered all 15 routes
+   (`/`, `/auth/login`, `/auth/register`, `/(tabs)`, `/(tabs)/transactions`, `/(tabs)/budgets`,
+   `/(tabs)/profile`, `/transaction/new`, `/transaction/[id]`, `/share-intent`, etc.) without import
+   or render-time crashes — this exercises every screen's component tree, hook usage, and the
+   `Stack.Protected` auth-gating logic, just not on a real device and not the native share-intent
+   module itself (which no-ops outside a custom dev client).
+3. `npx expo install --check` — dependency versions confirmed compatible with Expo SDK 57.
+
+**Before shipping**, this needs real-device verification of: the share-intent flow end-to-end
+(cold-launch via `+native-intent.ts` redirect, and foreground-receive via the `hasShareIntent` effect
+in `app/_layout.tsx`), SecureStore token persistence across app restarts, and the iOS App Group /
+Android intent filter configuration actually registering SpendWise in each platform's native share
+sheet.
+
 ---
 
 ## Notes / decisions made along the way
@@ -98,3 +141,15 @@ Phase 1.
   workspace package dir.
 - `multer` was added to `package.json` speculatively for the image-parse route, then removed —
   unused until the OCR path is actually implemented in Phase 3; will be re-added then.
+- Mobile app's routing/component folders were moved from `create-expo-app`'s default `src/app`,
+  `src/components`, `src/hooks` layout to the project root, to match the folder structure in
+  [01-monorepo-structure.md](01-monorepo-structure.md). Demo-only scaffold files (animated splash,
+  glass-effect tab bar) were deleted; the theming primitives (`ThemedText`, `ThemedView`, `useTheme`,
+  `constants/theme.ts`) were kept and extended.
+- Share-intent's Expo Router wiring (`+native-intent.ts`, `ShareIntentProvider` placement,
+  `hasShareIntent` redirect effect) was verified against the package's own
+  `example/expo-router` reference on GitHub rather than guessed, since getting this wrong would
+  silently break the app's core interaction. Full details in [09-mobile-app.md](09-mobile-app.md).
+- Budgets tab needed `User.monthlyBudget` to actually be settable, so `PATCH /api/auth/me` was added
+  (small, in-scope addition to the already-existing auth route family) rather than either faking the
+  UI or pulling the whole Phase 3 `Budget` CRUD forward.

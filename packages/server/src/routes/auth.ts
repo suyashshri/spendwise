@@ -7,7 +7,13 @@ import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../middleware/errorHandler";
 import { requireAuth } from "../middleware/auth";
 import { validateBody } from "../middleware/validation";
-import { registerSchema, loginSchema, googleAuthSchema, refreshSchema } from "../utils/schemas";
+import {
+  registerSchema,
+  loginSchema,
+  googleAuthSchema,
+  refreshSchema,
+  updateProfileSchema,
+} from "../utils/schemas";
 import { issueTokenPair, verifyRefreshToken, signAccessToken } from "../services/tokenService";
 
 const router = Router();
@@ -114,6 +120,27 @@ router.get(
     if (!user) {
       throw AppError.notFound("User not found");
     }
+    res.json({ user: user.toJSON() });
+  })
+);
+
+router.patch(
+  "/me",
+  requireAuth,
+  validateBody(updateProfileSchema),
+  asyncHandler(async (req, res) => {
+    const updates = req.body as { name?: string; currency?: string; monthlyBudget?: number | null };
+
+    const user = await User.findById(req.user!.id);
+    if (!user) {
+      throw AppError.notFound("User not found");
+    }
+
+    if (updates.name !== undefined) user.name = updates.name;
+    if (updates.currency !== undefined) user.currency = updates.currency;
+    if (updates.monthlyBudget !== undefined) user.monthlyBudget = updates.monthlyBudget ?? undefined;
+
+    await user.save();
     res.json({ user: user.toJSON() });
   })
 );

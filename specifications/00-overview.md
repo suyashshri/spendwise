@@ -57,6 +57,7 @@ See [01-monorepo-structure.md](01-monorepo-structure.md) for the full tree.
 | [06-share-intent-flow.md](06-share-intent-flow.md) | End-to-end share-intent → parse → confirm flow |
 | [07-environment-variables.md](07-environment-variables.md) | All env vars, per app |
 | [08-build-progress.md](08-build-progress.md) | Living log of what's built, phase by phase |
+| [09-mobile-app.md](09-mobile-app.md) | Mobile app architecture — screens, stores, share-intent wiring |
 
 ## Build phases (from the original brief)
 

@@ -20,6 +20,12 @@ export const refreshSchema = z.object({
   refreshToken: z.string().min(1),
 });
 
+export const updateProfileSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  currency: z.string().min(1).max(10).optional(),
+  monthlyBudget: z.number().positive().nullable().optional(),
+});
+
 export const parseTextSchema = z.object({
   text: z.string().min(1).max(2000),
 });
