@@ -31,7 +31,16 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'spendwise-auth',
       storage: createJSONStorage(() => secureStorage),
-      onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
+      // Always flip hasHydrated, even if rehydration itself errored (`state` is undefined in that
+      // case) — the UI should fall back to a logged-out state rather than hang forever on a blank
+      // screen waiting for a hydration that already failed.
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHasHydrated(true);
+        } else {
+          useAuthStore.setState({ hasHydrated: true });
+        }
+      },
     }
   )
 );
