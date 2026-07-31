@@ -1,0 +1,22 @@
+{
+  "name": "spendwise",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AI-powered UPI expense tracker — monorepo (mobile, web, server, shared)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace=@spendwise/shared",
+    "dev:server": "npm run build:shared && npm run dev --workspace=@spendwise/server",
+    "build:server": "npm run build:shared && npm run build --workspace=@spendwise/server",
+    "typecheck:server": "npm run build:shared && npm run typecheck --workspace=@spendwise/server",
+    "seed:categories": "npm run build:shared && npm run seed:categories --workspace=@spendwise/server",
+    "dev:mobile": "npm run start --workspace=@spendwise/mobile",
+    "dev:web": "npm run dev --workspace=@spendwise/web"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

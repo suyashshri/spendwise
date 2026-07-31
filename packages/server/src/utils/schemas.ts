@@ -1,0 +1,59 @@
+import { z } from "zod";
+import { PASSWORD_MIN_LENGTH, BUDGET_PERIODS } from "@spendwise/shared";
+
+export const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(PASSWORD_MIN_LENGTH),
+  name: z.string().min(1).max(100),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+export const googleAuthSchema = z.object({
+  idToken: z.string().min(1),
+});
+
+export const refreshSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+export const parseTextSchema = z.object({
+  text: z.string().min(1).max(2000),
+});
+
+export const categorizeSchema = z.object({
+  transactionId: z.string().min(1),
+  category: z.string().min(1),
+});
+
+export const createTransactionSchema = z.object({
+  amount: z.number().positive(),
+  merchant: z.string().min(1).max(100),
+  category: z.string().min(1),
+  date: z.string().datetime().or(z.string().min(1)),
+  note: z.string().max(500).optional(),
+});
+
+export const updateTransactionSchema = z.object({
+  amount: z.number().positive().optional(),
+  merchant: z.string().min(1).max(100).optional(),
+  category: z.string().min(1).optional(),
+  date: z.string().min(1).optional(),
+  note: z.string().max(500).optional(),
+});
+
+export const createBudgetSchema = z.object({
+  category: z.string().min(1),
+  limit: z.number().positive(),
+  period: z.enum(BUDGET_PERIODS),
+  alertAt: z.number().min(0).max(100).default(80),
+});
+
+export const updateBudgetSchema = z.object({
+  limit: z.number().positive().optional(),
+  alertAt: z.number().min(0).max(100).optional(),
+  isActive: z.boolean().optional(),
+});
