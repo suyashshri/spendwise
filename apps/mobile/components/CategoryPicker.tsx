@@ -44,7 +44,7 @@ export function CategoryPicker({
 }
 
 const styles = StyleSheet.create({
-  row: { gap: 8, paddingVertical: 4 },
+  row: { alignItems: 'flex-start', gap: 8, paddingVertical: 4 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

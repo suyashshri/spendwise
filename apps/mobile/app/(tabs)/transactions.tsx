@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   },
   addButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },
   addButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  filterRow: { gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
+  filterRow: { alignItems: 'flex-start', gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
   filterChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 },
   filterChipText: { fontSize: 13, fontWeight: '600' },
   list: { paddingHorizontal: 20, paddingBottom: 40 },
