@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { PASSWORD_MIN_LENGTH, BUDGET_PERIODS } from "@spendwise/shared";
+import { PASSWORD_MIN_LENGTH, BUDGET_PERIODS, SUPPORTED_CURRENCY_CODES } from "@spendwise/shared";
+
+const currencyCodeSchema = z.enum(SUPPORTED_CURRENCY_CODES as [string, ...string[]]);
 
 export const registerSchema = z.object({
   email: z.string().email(),
@@ -22,7 +24,7 @@ export const refreshSchema = z.object({
 
 export const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  currency: z.string().min(1).max(10).optional(),
+  currency: currencyCodeSchema.optional(),
   monthlyBudget: z.number().positive().nullable().optional(),
 });
 
@@ -37,6 +39,7 @@ export const categorizeSchema = z.object({
 
 export const createTransactionSchema = z.object({
   amount: z.number().positive(),
+  currency: currencyCodeSchema.optional(),
   merchant: z.string().min(1).max(100),
   category: z.string().min(1),
   date: z.string().datetime().or(z.string().min(1)),
@@ -45,6 +48,7 @@ export const createTransactionSchema = z.object({
 
 export const updateTransactionSchema = z.object({
   amount: z.number().positive().optional(),
+  currency: currencyCodeSchema.optional(),
   merchant: z.string().min(1).max(100).optional(),
   category: z.string().min(1).optional(),
   date: z.string().min(1).optional(),

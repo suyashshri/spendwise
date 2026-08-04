@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import type { Transaction } from '@spendwise/shared';
 
 import { Button } from '@/components/Button';
@@ -10,14 +10,17 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { TextField } from '@/components/TextField';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useAuth } from '@/hooks/useAuth';
 import { useTransactionStore } from '@/store/transactionStore';
 import { api, extractApiErrorMessage } from '@/services/api';
+import { confirmAction } from '@/utils/confirm';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatTransactionDate } from '@/utils/dateHelpers';
 
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuth();
   const fromStore = useTransactionStore((s) => s.transactions.find((t) => t.id === id));
   const updateTransaction = useTransactionStore((s) => s.updateTransaction);
   const deleteTransaction = useTransactionStore((s) => s.deleteTransaction);
@@ -75,17 +78,16 @@ export default function TransactionDetailScreen() {
   };
 
   const onDelete = () => {
-    Alert.alert('Delete transaction', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteTransaction(transaction.id);
-          router.back();
-        },
+    confirmAction({
+      title: 'Delete transaction',
+      message: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+      onConfirm: async () => {
+        await deleteTransaction(transaction.id);
+        router.back();
       },
-    ]);
+    });
   };
 
   return (
@@ -94,8 +96,14 @@ export default function TransactionDetailScreen() {
         <View style={styles.header}>
           <CategoryAvatar category={transaction.category} size={56} />
           <ThemedText type="title" style={styles.amount}>
-            {formatCurrency(transaction.amount)}
+            {formatCurrency(transaction.amount, transaction.currency)}
           </ThemedText>
+          {user && transaction.currency !== user.currency ? (
+            <ThemedText themeColor="textSecondary" style={styles.converted}>
+              ≈ {formatCurrency(transaction.amountInBaseCurrency, user.currency)}
+              {transaction.exchangeRate ? ` (1 ${transaction.currency} = ${transaction.exchangeRate.toFixed(2)} ${user.currency})` : ''}
+            </ThemedText>
+          ) : null}
           <ThemedText themeColor="textSecondary">{transaction.merchant}</ThemedText>
           <ThemedText themeColor="textTertiary" style={styles.date}>
             {formatTransactionDate(transaction.date)} ·{' '}
@@ -142,6 +150,7 @@ const styles = StyleSheet.create({
   content: { padding: 20, gap: 22, paddingBottom: 40 },
   header: { alignItems: 'center', gap: 6, marginBottom: 4 },
   amount: { fontSize: 34, lineHeight: 40, marginTop: 8 },
+  converted: { fontSize: 13, fontWeight: '600' },
   date: { fontSize: 13 },
   field: { gap: 8 },
   fieldLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 },

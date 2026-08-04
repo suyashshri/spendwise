@@ -15,6 +15,7 @@ interface TransactionState {
   fetchTransactions: (filters?: TransactionFilters) => Promise<void>;
   addTransaction: (input: {
     amount: number;
+    currency?: string;
     merchant: string;
     category: string;
     date: string;

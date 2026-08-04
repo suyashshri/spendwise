@@ -13,7 +13,7 @@ export interface CategoryBreakdown {
 }
 
 /** Simple horizontal-bar category breakdown — no charting library dependency needed for the MVP. */
-export function SpendingChart({ data }: { data: CategoryBreakdown[] }) {
+export function SpendingChart({ data, currency = 'INR' }: { data: CategoryBreakdown[]; currency?: string }) {
   const theme = useTheme();
   const maxAmount = Math.max(...data.map((d) => d.amount), 1);
   const sorted = [...data].sort((a, b) => b.amount - a.amount);
@@ -42,7 +42,7 @@ export function SpendingChart({ data }: { data: CategoryBreakdown[] }) {
                 <ThemedText style={styles.label} numberOfLines={1}>
                   {category}
                 </ThemedText>
-                <ThemedText style={styles.amount}>{formatCurrency(amount)}</ThemedText>
+                <ThemedText style={styles.amount}>{formatCurrency(amount, currency)}</ThemedText>
               </View>
               <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
                 <View style={[styles.fill, { width: `${width}%`, backgroundColor: color }]} />

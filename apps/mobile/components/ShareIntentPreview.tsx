@@ -51,7 +51,7 @@ export function ShareIntentPreview({
       <View style={styles.header}>
         <CategoryAvatar category={category} size={56} />
         <ThemedText type="title" style={styles.amount}>
-          {formatCurrency(transaction.amount)}
+          {formatCurrency(transaction.amount, transaction.currency)}
         </ThemedText>
         <ThemedText themeColor="textSecondary">{transaction.merchant}</ThemedText>
         <ThemedText themeColor="textTertiary" style={styles.date}>

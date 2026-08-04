@@ -84,7 +84,7 @@ export default function HomeScreen() {
             Where it went
           </ThemedText>
           <Card>
-            <SpendingChart data={byCategory} />
+            <SpendingChart data={byCategory} currency={user?.currency} />
           </Card>
         </FadeInView>
 

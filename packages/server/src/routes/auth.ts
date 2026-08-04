@@ -15,6 +15,7 @@ import {
   updateProfileSchema,
 } from "../utils/schemas";
 import { issueTokenPair, verifyRefreshToken, signAccessToken } from "../services/tokenService";
+import { reconvertTransactionsToBaseCurrency } from "../services/currencyMigration";
 
 const router = Router();
 const googleClient = config.googleClientId ? new OAuth2Client(config.googleClientId) : null;
@@ -136,11 +137,18 @@ router.patch(
       throw AppError.notFound("User not found");
     }
 
+    const currencyChanged = updates.currency !== undefined && updates.currency !== user.currency;
+
     if (updates.name !== undefined) user.name = updates.name;
     if (updates.currency !== undefined) user.currency = updates.currency;
     if (updates.monthlyBudget !== undefined) user.monthlyBudget = updates.monthlyBudget ?? undefined;
 
     await user.save();
+
+    if (currencyChanged) {
+      await reconvertTransactionsToBaseCurrency(user._id, user.currency);
+    }
+
     res.json({ user: user.toJSON() });
   })
 );

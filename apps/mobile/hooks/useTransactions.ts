@@ -15,12 +15,18 @@ export function useMonthlyTransactions(month?: number, year?: number) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [m, y]);
 
-  const totalSpent = useMemo(() => transactions.reduce((sum, t) => sum + t.amount, 0), [transactions]);
+  // Sum amountInBaseCurrency, not amount — transactions can be in different currencies
+  // (see specifications/12-multi-currency.md), and amountInBaseCurrency is each transaction's
+  // amount already converted to the user's account currency at save time.
+  const totalSpent = useMemo(
+    () => transactions.reduce((sum, t) => sum + t.amountInBaseCurrency, 0),
+    [transactions]
+  );
 
   const byCategory: CategoryBreakdown[] = useMemo(() => {
     const totals = new Map<string, number>();
     for (const t of transactions) {
-      totals.set(t.category, (totals.get(t.category) ?? 0) + t.amount);
+      totals.set(t.category, (totals.get(t.category) ?? 0) + t.amountInBaseCurrency);
     }
     return Array.from(totals.entries()).map(([category, amount]) => ({ category, amount }));
   }, [transactions]);

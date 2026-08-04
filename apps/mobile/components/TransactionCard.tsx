@@ -45,7 +45,7 @@ export function TransactionCard({
       </View>
 
       <View style={styles.right}>
-        <ThemedText style={styles.amount}>{formatCurrency(transaction.amount)}</ThemedText>
+        <ThemedText style={styles.amount}>{formatCurrency(transaction.amount, transaction.currency)}</ThemedText>
         <ThemedText themeColor="textTertiary" style={styles.date}>
           {formatTransactionDate(transaction.date)}
         </ThemedText>

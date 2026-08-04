@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DEFAULT_CATEGORY_NAMES, type BudgetPeriod } from '@spendwise/shared';
 
@@ -8,7 +8,7 @@ import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { BudgetProgressBar } from '@/components/BudgetProgressBar';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { CategoryPicker } from '@/components/CategoryPicker';
+import { CategoryDropdown } from '@/components/CategoryDropdown';
 import { FadeInView } from '@/components/FadeInView';
 import { SpendingChart } from '@/components/SpendingChart';
 import { ThemedText } from '@/components/themed-text';
@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBudgets } from '@/hooks/useBudgets';
 import { useMonthlyTransactions } from '@/hooks/useTransactions';
 import { extractApiErrorMessage } from '@/services/api';
+import { confirmAction } from '@/utils/confirm';
 import { monthLabel, currentMonthYear } from '@/utils/dateHelpers';
 
 export default function BudgetsScreen() {
@@ -91,7 +92,13 @@ export default function BudgetsScreen() {
               </View>
             ) : user?.monthlyBudget ? (
               <View style={styles.progressWrap}>
-                <BudgetProgressBar label="Overall" spent={totalSpent} limit={user.monthlyBudget} alertAt={80} />
+                <BudgetProgressBar
+                  label="Overall"
+                  spent={totalSpent}
+                  limit={user.monthlyBudget}
+                  alertAt={80}
+                  currency={user.currency}
+                />
               </View>
             ) : (
               <ThemedText themeColor="textSecondary" style={styles.empty}>
@@ -111,7 +118,7 @@ export default function BudgetsScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Category budgets
           </ThemedText>
-          <CategoryBudgets budgets={budgets} onDelete={deleteBudget} onAdd={addBudget} />
+          <CategoryBudgets budgets={budgets} onDelete={deleteBudget} onAdd={addBudget} currency={user?.currency} />
         </FadeInView>
 
         <FadeInView delay={160} style={styles.section}>
@@ -119,7 +126,7 @@ export default function BudgetsScreen() {
             Spending by category
           </ThemedText>
           <Card>
-            <SpendingChart data={byCategory} />
+            <SpendingChart data={byCategory} currency={user?.currency} />
           </Card>
         </FadeInView>
       </ScrollView>
@@ -131,10 +138,12 @@ function CategoryBudgets({
   budgets,
   onDelete: deleteBudget,
   onAdd,
+  currency = 'INR',
 }: {
   budgets: ReturnType<typeof useBudgets>['budgets'];
   onDelete: ReturnType<typeof useBudgets>['deleteBudget'];
   onAdd: ReturnType<typeof useBudgets>['addBudget'];
+  currency?: string;
 }) {
   const theme = useTheme();
   const [isAdding, setIsAdding] = useState(false);
@@ -167,11 +176,20 @@ function CategoryBudgets({
     }
   };
 
-  const confirmDelete = (id: string, label: string) => {
-    Alert.alert('Delete budget', `Remove the ${label} budget?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteBudget(id) },
-    ]);
+  const onDeletePress = (id: string, label: string) => {
+    confirmAction({
+      title: 'Delete budget',
+      message: `Remove the ${label} budget?`,
+      confirmLabel: 'Delete',
+      destructive: true,
+      onConfirm: () => deleteBudget(id),
+    });
+  };
+
+  const closeForm = () => {
+    setIsAdding(false);
+    setError(null);
+    setLimit('');
   };
 
   return (
@@ -185,9 +203,15 @@ function CategoryBudgets({
         budgets.map((b) => (
           <View key={b.id} style={styles.budgetRow}>
             <View style={{ flex: 1 }}>
-              <BudgetProgressBar label={`${b.category} · ${b.period}`} spent={b.spent ?? 0} limit={b.limit} alertAt={b.alertAt} />
+              <BudgetProgressBar
+                label={`${b.category} · ${b.period}`}
+                spent={b.spent ?? 0}
+                limit={b.limit}
+                alertAt={b.alertAt}
+                currency={currency}
+              />
             </View>
-            <AnimatedPressable onPress={() => confirmDelete(b.id, b.category)} scaleTo={0.9} style={styles.deleteButton}>
+            <AnimatedPressable onPress={() => onDeletePress(b.id, b.category)} scaleTo={0.9} style={styles.deleteButton}>
               <Ionicons name="trash-outline" size={16} color={theme.textTertiary} />
             </AnimatedPressable>
           </View>
@@ -196,7 +220,14 @@ function CategoryBudgets({
 
       {isAdding ? (
         <View style={styles.addForm}>
-          <CategoryPicker value={category} onChange={setCategory} />
+          <View style={styles.addFormHeader}>
+            <ThemedText style={styles.addFormTitle}>New category budget</ThemedText>
+            <AnimatedPressable onPress={closeForm} scaleTo={0.9} style={styles.closeButton}>
+              <Ionicons name="close" size={20} color={theme.textSecondary} />
+            </AnimatedPressable>
+          </View>
+
+          <CategoryDropdown value={category} onChange={setCategory} />
 
           <View style={styles.periodRow}>
             {(['monthly', 'weekly'] as const).map((p) => (
@@ -264,6 +295,9 @@ const styles = StyleSheet.create({
   budgetRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   deleteButton: { padding: 8, marginBottom: 12 },
   addForm: { gap: 12, marginTop: 8 },
+  addFormHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  addFormTitle: { fontSize: 15, fontWeight: '700' },
+  closeButton: { padding: 4 },
   periodRow: { flexDirection: 'row', gap: 8 },
   periodChip: { flex: 1, alignItems: 'center', borderWidth: 1.5, borderRadius: Radii.md, paddingVertical: 10 },
   periodChipText: { fontSize: 13, fontWeight: '700' },

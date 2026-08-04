@@ -1,23 +1,27 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { DEFAULT_CATEGORY_NAMES } from '@spendwise/shared';
+import { DEFAULT_CATEGORY_NAMES, getCurrencyInfo } from '@spendwise/shared';
 
 import { Button } from '@/components/Button';
 import { CategoryPicker } from '@/components/CategoryPicker';
+import { CurrencyPicker } from '@/components/CurrencyPicker';
 import { TextField } from '@/components/TextField';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
+import { useAuth } from '@/hooks/useAuth';
 import { useTransactionStore } from '@/store/transactionStore';
 import { extractApiErrorMessage } from '@/services/api';
 
 export default function NewTransactionScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { user } = useAuth();
   const addTransaction = useTransactionStore((s) => s.addTransaction);
 
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState(user?.currency ?? 'INR');
   const [merchant, setMerchant] = useState('');
   const [category, setCategory] = useState<string>(DEFAULT_CATEGORY_NAMES[0]);
   const [note, setNote] = useState('');
@@ -34,6 +38,7 @@ export default function NewTransactionScreen() {
     try {
       await addTransaction({
         amount: parsedAmount,
+        currency,
         merchant: merchant.trim(),
         category,
         date: new Date().toISOString(),
@@ -55,7 +60,9 @@ export default function NewTransactionScreen() {
             Amount
           </ThemedText>
           <View style={styles.amountRow}>
-            <ThemedText style={[styles.currencySymbol, { color: theme.textTertiary }]}>₹</ThemedText>
+            <ThemedText style={[styles.currencySymbol, { color: theme.textTertiary }]}>
+              {getCurrencyInfo(currency).symbol}
+            </ThemedText>
             <TextInput
               style={[styles.amountInput, { color: theme.text }]}
               placeholder="0"
@@ -66,6 +73,7 @@ export default function NewTransactionScreen() {
               autoFocus
             />
           </View>
+          <CurrencyPicker value={currency} onChange={setCurrency} />
         </View>
 
         <TextField

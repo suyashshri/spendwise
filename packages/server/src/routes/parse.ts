@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { Types } from "mongoose";
-import { AI_CONFIDENCE_REVIEW_THRESHOLD } from "@spendwise/shared";
+import { AI_CONFIDENCE_REVIEW_THRESHOLD, DEFAULT_CURRENCY } from "@spendwise/shared";
 import { Transaction, type TransactionDocument } from "../models/Transaction";
+import { User } from "../models/User";
 import { requireAuth } from "../middleware/auth";
 import { validateBody } from "../middleware/validation";
 import { uploadScreenshot } from "../middleware/upload";
@@ -12,6 +13,7 @@ import { categorizeTransactionText } from "../services/aiCategorizer";
 import { extractTextFromImage } from "../services/ocrParser";
 import { checkBudgetsForTransaction } from "../services/budgetChecker";
 import { detectRecurringForMerchant } from "../services/recurringDetector";
+import { getExchangeRate } from "../services/exchangeRateService";
 import type { AiParseResult, TransactionInputType } from "@spendwise/shared";
 
 const router = Router();
@@ -20,6 +22,10 @@ const router = Router();
  * Shared by both /text and /image: given raw text (typed or OCR'd) and where it came from,
  * runs AI categorization, dedups on upiRefId, saves, and checks budgets. One code path regardless
  * of input source — see specifications/05-ai-categorization.md.
+ *
+ * UPI-sourced amounts are always INR (UPI is India-only) regardless of the user's account
+ * currency — converted to the user's currency for budget/analytics aggregation, see
+ * specifications/12-multi-currency.md.
  */
 async function parseAndSaveTransaction(
   userId: Types.ObjectId,
@@ -35,9 +41,17 @@ async function parseAndSaveTransaction(
     }
   }
 
+  const user = await User.findById(userId).select("currency");
+  const userCurrency = user?.currency ?? DEFAULT_CURRENCY;
+  const transactionCurrency = "INR";
+  const exchangeRate = await getExchangeRate(transactionCurrency, userCurrency);
+
   const transaction = await Transaction.create({
     userId,
     amount: parsed.amount,
+    currency: transactionCurrency,
+    amountInBaseCurrency: parsed.amount * exchangeRate,
+    exchangeRate,
     merchant: parsed.merchant,
     category: parsed.suggestedCategory,
     rawInput: rawText,

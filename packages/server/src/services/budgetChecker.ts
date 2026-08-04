@@ -10,6 +10,14 @@ export interface BudgetAlert {
   percentUsed: number;
 }
 
+// Sum this instead of `$amount` in any cross-transaction aggregation (budgets, analytics) — it's
+// `amount` converted to the user's account currency at save time, so summing it is meaningful
+// even when transactions span multiple currencies. $ifNull covers transactions saved before the
+// multi-currency migration (see models/Transaction.ts) that may not have this field populated in
+// an aggregation context (the Mongoose schema `default` only applies on document hydration, not
+// inside the aggregation pipeline, which reads raw collection documents).
+export const BASE_AMOUNT_EXPR = { $ifNull: ["$amountInBaseCurrency", "$amount"] };
+
 export function periodStart(period: "monthly" | "weekly"): Date {
   const now = new Date();
   if (period === "weekly") {
@@ -48,7 +56,7 @@ export async function checkBudgetsForTransaction(
 
     const [{ total } = { total: 0 }] = await Transaction.aggregate([
       { $match: { userId, date: { $gte: start }, ...matchCategory } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
+      { $group: { _id: null, total: { $sum: BASE_AMOUNT_EXPR } } },
     ]);
 
     const percentUsed = budget.limit > 0 ? (total / budget.limit) * 100 : 0;

@@ -11,11 +11,15 @@ export function BudgetProgressBar({
   spent,
   limit,
   alertAt,
+  currency = 'INR',
 }: {
   label: string;
   spent: number;
   limit: number;
   alertAt: number;
+  /** Budgets/spend totals are always in the user's account currency (spend is a sum of each
+   * transaction's amountInBaseCurrency) — see specifications/12-multi-currency.md. */
+  currency?: string;
 }) {
   const theme = useTheme();
   const percent = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
@@ -36,7 +40,7 @@ export function BudgetProgressBar({
           {label}
         </ThemedText>
         <ThemedText themeColor="textSecondary" style={styles.amounts}>
-          {formatCurrency(spent)} / {formatCurrency(limit)}
+          {formatCurrency(spent, currency)} / {formatCurrency(limit, currency)}
         </ThemedText>
       </View>
       <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>

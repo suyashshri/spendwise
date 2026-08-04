@@ -1,14 +1,16 @@
 import { Router } from "express";
 import { Types } from "mongoose";
 import { z } from "zod";
-import { TRANSACTIONS_DEFAULT_PAGE_SIZE } from "@spendwise/shared";
+import { TRANSACTIONS_DEFAULT_PAGE_SIZE, DEFAULT_CURRENCY } from "@spendwise/shared";
 import { Transaction } from "../models/Transaction";
+import { User } from "../models/User";
 import { requireAuth } from "../middleware/auth";
 import { validateBody, validateQuery } from "../middleware/validation";
 import { asyncHandler } from "../middleware/errorHandler";
 import { AppError } from "../utils/AppError";
 import { createTransactionSchema, updateTransactionSchema } from "../utils/schemas";
 import { detectRecurringForMerchant } from "../services/recurringDetector";
+import { getExchangeRate } from "../services/exchangeRateService";
 
 const router = Router();
 router.use(requireAuth);
@@ -68,8 +70,9 @@ router.post(
   "/",
   validateBody(createTransactionSchema),
   asyncHandler(async (req, res) => {
-    const { amount, merchant, category, date, note } = req.body as {
+    const { amount, currency, merchant, category, date, note } = req.body as {
       amount: number;
+      currency?: string;
       merchant: string;
       category: string;
       date: string;
@@ -78,9 +81,17 @@ router.post(
 
     const userId = new Types.ObjectId(req.user!.id);
 
+    const user = await User.findById(userId).select("currency");
+    const userCurrency = user?.currency ?? DEFAULT_CURRENCY;
+    const transactionCurrency = currency ?? userCurrency;
+    const exchangeRate = await getExchangeRate(transactionCurrency, userCurrency);
+
     const transaction = await Transaction.create({
       userId,
       amount,
+      currency: transactionCurrency,
+      amountInBaseCurrency: amount * exchangeRate,
+      exchangeRate,
       merchant,
       category,
       date: new Date(date),
@@ -103,6 +114,7 @@ router.patch(
   asyncHandler(async (req, res) => {
     const updates = req.body as Partial<{
       amount: number;
+      currency: string;
       merchant: string;
       category: string;
       date: string;
@@ -114,7 +126,10 @@ router.patch(
       throw AppError.notFound("Transaction not found");
     }
 
+    const amountOrCurrencyChanged = updates.amount !== undefined || updates.currency !== undefined;
+
     if (updates.amount !== undefined) transaction.amount = updates.amount;
+    if (updates.currency !== undefined) transaction.currency = updates.currency;
     if (updates.merchant !== undefined) transaction.merchant = updates.merchant;
     if (updates.category !== undefined) {
       transaction.category = updates.category;
@@ -122,6 +137,14 @@ router.patch(
     }
     if (updates.date !== undefined) transaction.date = new Date(updates.date);
     if (updates.note !== undefined) transaction.note = updates.note;
+
+    if (amountOrCurrencyChanged) {
+      const user = await User.findById(req.user!.id).select("currency");
+      const userCurrency = user?.currency ?? DEFAULT_CURRENCY;
+      const rate = await getExchangeRate(transaction.currency, userCurrency);
+      transaction.exchangeRate = rate;
+      transaction.amountInBaseCurrency = transaction.amount * rate;
+    }
 
     await transaction.save();
     res.json({ transaction: transaction.toJSON() });

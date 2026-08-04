@@ -5,6 +5,7 @@ import { Transaction } from "../models/Transaction";
 import { requireAuth } from "../middleware/auth";
 import { validateQuery } from "../middleware/validation";
 import { asyncHandler } from "../middleware/errorHandler";
+import { BASE_AMOUNT_EXPR } from "../services/budgetChecker";
 
 const router = Router();
 router.use(requireAuth);
@@ -24,7 +25,7 @@ async function computeSummary(userId: Types.ObjectId, month: number, year: numbe
 
   const rows = await Transaction.aggregate<{ _id: string; amount: number; count: number }>([
     { $match: { userId, date: { $gte: start, $lt: end } } },
-    { $group: { _id: "$category", amount: { $sum: "$amount" }, count: { $sum: 1 } } },
+    { $group: { _id: "$category", amount: { $sum: BASE_AMOUNT_EXPR }, count: { $sum: 1 } } },
     { $sort: { amount: -1 } },
   ]);
 
@@ -123,7 +124,7 @@ router.get(
 
     const rows = await Transaction.aggregate<{ _id: string; totalSpent: number; count: number }>([
       { $match: { userId, date: { $gte: start, $lt: end } } },
-      { $group: { _id: "$merchant", totalSpent: { $sum: "$amount" }, count: { $sum: 1 } } },
+      { $group: { _id: "$merchant", totalSpent: { $sum: BASE_AMOUNT_EXPR }, count: { $sum: 1 } } },
       { $sort: { totalSpent: -1 } },
       { $limit: limit },
     ]);

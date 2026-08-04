@@ -7,7 +7,7 @@ import { validateBody } from "../middleware/validation";
 import { asyncHandler } from "../middleware/errorHandler";
 import { AppError } from "../utils/AppError";
 import { createBudgetSchema, updateBudgetSchema } from "../utils/schemas";
-import { periodStart } from "../services/budgetChecker";
+import { periodStart, BASE_AMOUNT_EXPR } from "../services/budgetChecker";
 
 const router = Router();
 router.use(requireAuth);
@@ -18,7 +18,7 @@ async function spentForBudget(userId: Types.ObjectId, category: string, period: 
 
   const [{ total } = { total: 0 }] = await Transaction.aggregate([
     { $match: { userId, date: { $gte: start }, ...matchCategory } },
-    { $group: { _id: null, total: { $sum: "$amount" } } },
+    { $group: { _id: null, total: { $sum: BASE_AMOUNT_EXPR } } },
   ]);
 
   return total;

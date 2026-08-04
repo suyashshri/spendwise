@@ -1,26 +1,42 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Alert, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { CurrencyPicker } from '@/components/CurrencyPicker';
 import { FadeInView } from '@/components/FadeInView';
 import { ThemedText } from '@/components/themed-text';
 import { FloatingTabBarSpace, Gradients } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/useAuth';
+import { confirmAction } from '@/utils/confirm';
 
 export default function ProfileScreen() {
   const theme = useTheme();
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
+  const [isEditingCurrency, setIsEditingCurrency] = useState(false);
+  const [isSavingCurrency, setIsSavingCurrency] = useState(false);
 
   const onLogout = () => {
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Log out', style: 'destructive', onPress: logout },
-    ]);
+    confirmAction({
+      title: 'Log out',
+      message: 'Are you sure you want to log out?',
+      confirmLabel: 'Log out',
+      destructive: true,
+      onConfirm: logout,
+    });
+  };
+
+  const onChangeCurrency = async (currency: string) => {
+    setIsSavingCurrency(true);
+    await updateProfile({ currency });
+    setIsSavingCurrency(false);
+    setIsEditingCurrency(false);
   };
 
   const initial = user?.name?.trim()?.[0]?.toUpperCase() ?? '?';
@@ -44,7 +60,18 @@ export default function ProfileScreen() {
 
         <FadeInView delay={80}>
           <Card style={{ gap: 4 }}>
-            <Row icon="cash" label="Currency" value={user?.currency ?? 'INR'} theme={theme} />
+            <AnimatedPressable onPress={() => setIsEditingCurrency((v) => !v)} scaleTo={0.98}>
+              <Row icon="cash" label="Currency" value={user?.currency ?? 'INR'} theme={theme} />
+            </AnimatedPressable>
+            {isEditingCurrency ? (
+              <View style={styles.currencyEditor}>
+                {isSavingCurrency ? (
+                  <ThemedText themeColor="textSecondary">Saving…</ThemedText>
+                ) : (
+                  <CurrencyPicker value={user?.currency ?? 'INR'} onChange={onChangeCurrency} />
+                )}
+              </View>
+            ) : null}
             <Row
               icon={user?.authProvider === 'google' ? 'logo-google' : 'mail'}
               label="Sign-in method"
@@ -100,6 +127,7 @@ const styles = StyleSheet.create({
   identity: { gap: 2 },
   name: { fontSize: 17, fontWeight: '700' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
+  currencyEditor: { paddingBottom: 12 },
   rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   rowValue: { fontWeight: '700' },
   logoutWrap: { marginTop: 8 },
