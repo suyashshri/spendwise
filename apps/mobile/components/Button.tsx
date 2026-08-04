@@ -60,7 +60,9 @@ export function Button({
       ) : (
         <View style={styles.content}>
           {icon}
-          <ThemedText style={[styles.label, { color: textColor }]}>{title}</ThemedText>
+          <ThemedText style={[styles.label, { color: textColor }]} numberOfLines={1}>
+            {title}
+          </ThemedText>
         </View>
       )}
     </AnimatedPressable>

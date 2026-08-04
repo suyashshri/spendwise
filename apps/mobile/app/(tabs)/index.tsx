@@ -70,7 +70,7 @@ export default function HomeScreen() {
           </View>
           <View style={styles.actionButton}>
             <Button
-              title="Scan screenshot"
+              title="Scan"
               onPress={uploadScreenshot}
               loading={isUploading}
               variant="secondary"
