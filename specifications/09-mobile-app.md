@@ -65,6 +65,21 @@ alert thresholds will replace/extend this once the Phase 3 routes land.
 shared by manual-add, edit, and share-intent confirm), `SpendingChart` (dependency-free horizontal
 bar chart — no charting library added for this), `BudgetProgressBar`, `ShareIntentPreview`.
 
+## In-app screenshot upload (`expo-image-picker`)
+
+The share-intent flow below is the primary path, but it only works via the OS share sheet — a
+custom dev client is required to test it at all (Expo Go can't), which makes it hard to reach.
+`hooks/useScreenshotUpload.ts` adds a second, in-app entry point to the exact same OCR pipeline:
+pick an image from the photo library (`expo-image-picker`) → `POST /api/parse/image` (the same
+`services/shareIntent.ts` → `parseSharedImage()` the share-intent screen uses) → navigate to
+`/transaction/:id` to review/edit the result. No new confirmation UI needed — it reuses the existing
+transaction detail screen instead of duplicating `ShareIntentPreview`.
+
+Exposed from two places for discoverability: a "Scan screenshot" button next to "Add manually" on
+Home, and an icon button in the Transactions tab header next to "+ Add". Requires
+`expo-image-picker`'s config plugin in `app.json` (`photosPermission`/`cameraPermission` — iOS
+requires a usage-description string for the permission prompt to show at all).
+
 ## Share intent (`expo-share-intent`)
 
 This is the app's core interaction and needed care to get the Expo Router wiring right — verified

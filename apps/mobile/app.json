@@ -37,6 +37,13 @@
       ],
       "expo-secure-store",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "SpendWise needs access to your photos so you can upload a UPI payment screenshot.",
+          "cameraPermission": "SpendWise needs camera access so you can photograph a UPI payment screenshot."
+        }
+      ],
+      [
         "expo-share-intent",
         {
           "iosActivationRules": {

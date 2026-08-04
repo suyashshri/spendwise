@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { RefreshControl, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
@@ -13,6 +14,7 @@ import { Elevation, FloatingTabBarSpace, Gradients, Radii } from '@/constants/th
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useMonthlyTransactions } from '@/hooks/useTransactions';
+import { useScreenshotUpload } from '@/hooks/useScreenshotUpload';
 import { monthLabel, currentMonthYear } from '@/utils/dateHelpers';
 import { formatCurrency } from '@/utils/formatCurrency';
 
@@ -23,6 +25,7 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { month, year } = currentMonthYear();
   const { transactions, totalSpent, byCategory, isLoading, refetch } = useMonthlyTransactions();
+  const { uploadScreenshot, isUploading } = useScreenshotUpload();
 
   const recent = transactions.slice(0, 5);
   const budget = user?.monthlyBudget;
@@ -61,8 +64,19 @@ export default function HomeScreen() {
           </LinearGradient>
         </FadeInView>
 
-        <FadeInView delay={80}>
-          <Button title="+ Add expense" onPress={() => router.push('/transaction/new')} variant="secondary" />
+        <FadeInView delay={80} style={styles.actionRow}>
+          <View style={styles.actionButton}>
+            <Button title="Add manually" onPress={() => router.push('/transaction/new')} variant="secondary" />
+          </View>
+          <View style={styles.actionButton}>
+            <Button
+              title="Scan screenshot"
+              onPress={uploadScreenshot}
+              loading={isUploading}
+              variant="secondary"
+              icon={<Ionicons name="image-outline" size={16} color={theme.text} />}
+            />
+          </View>
         </FadeInView>
 
         <FadeInView delay={140} style={styles.section}>
@@ -103,6 +117,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: FloatingTabBarSpace, gap: 20 },
   greeting: { fontSize: 15, fontWeight: '600' },
+  actionRow: { flexDirection: 'row', gap: 10 },
+  actionButton: { flex: 1 },
   hero: { borderRadius: Radii.xl, padding: 24, gap: 6 },
   heroLabel: { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
   heroAmount: { fontSize: 40, lineHeight: 46, fontWeight: '800', color: '#fff' },
