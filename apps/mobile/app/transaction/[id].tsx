@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import type { Transaction } from '@spendwise/shared';
 
+import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { CategoryAvatar } from '@/components/CategoryAvatar';
 import { CategoryPicker } from '@/components/CategoryPicker';
+import { TextField } from '@/components/TextField';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { useTheme } from '@/hooks/use-theme';
 import { useTransactionStore } from '@/store/transactionStore';
 import { api, extractApiErrorMessage } from '@/services/api';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { formatTransactionDate } from '@/utils/dateHelpers';
 
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const theme = useTheme();
   const router = useRouter();
   const fromStore = useTransactionStore((s) => s.transactions.find((t) => t.id === id));
   const updateTransaction = useTransactionStore((s) => s.updateTransaction);
@@ -87,13 +90,14 @@ export default function TransactionDetailScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.header}>
+          <CategoryAvatar category={transaction.category} size={56} />
           <ThemedText type="title" style={styles.amount}>
-            ₹{transaction.amount.toLocaleString('en-IN')}
+            {formatCurrency(transaction.amount)}
           </ThemedText>
           <ThemedText themeColor="textSecondary">{transaction.merchant}</ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.date}>
+          <ThemedText themeColor="textTertiary" style={styles.date}>
             {formatTransactionDate(transaction.date)} ·{' '}
             {transaction.inputType === 'manual' ? 'Manual entry' : 'Shared from UPI app'}
           </ThemedText>
@@ -106,28 +110,17 @@ export default function TransactionDetailScreen() {
           <CategoryPicker value={category} onChange={setCategory} />
         </View>
 
-        <View style={styles.field}>
-          <ThemedText themeColor="textSecondary" style={styles.fieldLabel}>
-            Note
-          </ThemedText>
-          <TextInput
-            style={[styles.input, { borderColor: theme.border, color: theme.text }]}
-            placeholder="Add a note"
-            placeholderTextColor={theme.textSecondary}
-            value={note}
-            onChangeText={setNote}
-          />
-        </View>
+        <TextField label="Note" icon="create-outline" placeholder="Add a note" value={note} onChangeText={setNote} />
 
         {transaction.rawInput ? (
-          <View style={styles.field}>
+          <Card elevated={false} style={styles.rawInputCard}>
             <ThemedText themeColor="textSecondary" style={styles.fieldLabel}>
               Original share text
             </ThemedText>
             <ThemedText themeColor="textSecondary" style={styles.rawInput}>
               {transaction.rawInput}
             </ThemedText>
-          </View>
+          </Card>
         ) : null}
 
         {error ? (
@@ -136,21 +129,9 @@ export default function TransactionDetailScreen() {
           </ThemedText>
         ) : null}
 
-        {isDirty ? (
-          <Pressable
-            style={[styles.button, { backgroundColor: theme.primary }]}
-            onPress={onSave}
-            disabled={isSaving}
-          >
-            {isSaving ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.buttonText}>Save changes</ThemedText>}
-          </Pressable>
-        ) : null}
+        {isDirty ? <Button title="Save changes" onPress={onSave} loading={isSaving} /> : null}
 
-        <Pressable style={[styles.button, styles.deleteButton, { borderColor: theme.danger }]} onPress={onDelete}>
-          <ThemedText themeColor="danger" style={styles.deleteButtonText}>
-            Delete transaction
-          </ThemedText>
-        </Pressable>
+        <Button title="Delete transaction" onPress={onDelete} variant="danger-ghost" />
       </ScrollView>
     </ThemedView>
   );
@@ -158,16 +139,13 @@ export default function TransactionDetailScreen() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  content: { padding: 20, gap: 24, paddingBottom: 40 },
-  amount: { fontSize: 34, lineHeight: 40 },
-  date: { marginTop: 2, fontSize: 13 },
+  content: { padding: 20, gap: 22, paddingBottom: 40 },
+  header: { alignItems: 'center', gap: 6, marginBottom: 4 },
+  amount: { fontSize: 34, lineHeight: 40, marginTop: 8 },
+  date: { fontSize: 13 },
   field: { gap: 8 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16 },
+  fieldLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 },
+  rawInputCard: { gap: 8 },
   rawInput: { fontSize: 13, lineHeight: 18, fontStyle: 'italic' },
   error: { fontSize: 14 },
-  button: { borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  deleteButton: { borderWidth: 1, backgroundColor: 'transparent' },
-  deleteButtonText: { fontWeight: '600', fontSize: 16 },
 });

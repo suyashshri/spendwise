@@ -1,13 +1,19 @@
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Alert, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { FadeInView } from '@/components/FadeInView';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { FloatingTabBarSpace, Gradients } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfileScreen() {
   const theme = useTheme();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const { user, logout } = useAuth();
 
   const onLogout = () => {
@@ -17,49 +23,84 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const initial = user?.name?.trim()?.[0]?.toUpperCase() ?? '?';
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top']}>
-      <View style={styles.content}>
-        <ThemedText type="subtitle" style={styles.title}>
-          Profile
-        </ThemedText>
+      <ScrollView contentContainerStyle={styles.content}>
+        <ThemedText type="subtitle">Profile</ThemedText>
 
-        <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText style={styles.name}>{user?.name}</ThemedText>
-          <ThemedText themeColor="textSecondary">{user?.email}</ThemedText>
-        </ThemedView>
+        <FadeInView>
+          <Card style={styles.profileCard}>
+            <LinearGradient colors={Gradients[scheme].hero} style={styles.avatar}>
+              <ThemedText style={styles.avatarText}>{initial}</ThemedText>
+            </LinearGradient>
+            <View style={styles.identity}>
+              <ThemedText style={styles.name}>{user?.name}</ThemedText>
+              <ThemedText themeColor="textSecondary">{user?.email}</ThemedText>
+            </View>
+          </Card>
+        </FadeInView>
 
-        <ThemedView type="backgroundElement" style={styles.card}>
-          <Row label="Currency" value={user?.currency ?? 'INR'} />
-          <Row label="Sign-in method" value={user?.authProvider === 'google' ? 'Google' : 'Email'} />
-        </ThemedView>
+        <FadeInView delay={80}>
+          <Card style={{ gap: 4 }}>
+            <Row icon="cash" label="Currency" value={user?.currency ?? 'INR'} theme={theme} />
+            <Row
+              icon={user?.authProvider === 'google' ? 'logo-google' : 'mail'}
+              label="Sign-in method"
+              value={user?.authProvider === 'google' ? 'Google' : 'Email'}
+              theme={theme}
+              last
+            />
+          </Card>
+        </FadeInView>
 
-        <Pressable style={[styles.logoutButton, { borderColor: theme.danger }]} onPress={onLogout}>
-          <ThemedText themeColor="danger" style={styles.logoutText}>
-            Log out
-          </ThemedText>
-        </Pressable>
-      </View>
+        <FadeInView delay={140} style={styles.logoutWrap}>
+          <Button
+            title="Log out"
+            variant="danger"
+            onPress={onLogout}
+            icon={<Ionicons name="log-out-outline" size={18} color="#fff" />}
+          />
+        </FadeInView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({
+  icon,
+  label,
+  value,
+  theme,
+  last,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+  theme: ReturnType<typeof useTheme>;
+  last?: boolean;
+}) {
   return (
-    <View style={styles.row}>
-      <ThemedText themeColor="textSecondary">{label}</ThemedText>
+    <View style={[styles.row, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderColor: theme.border }]}>
+      <View style={styles.rowLeft}>
+        <Ionicons name={icon} size={18} color={theme.textSecondary} />
+        <ThemedText themeColor="textSecondary">{label}</ThemedText>
+      </View>
       <ThemedText style={styles.rowValue}>{value}</ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { flex: 1, padding: 20, gap: 20 },
-  title: { marginBottom: 4 },
-  card: { borderRadius: 16, padding: 16, gap: 10 },
-  name: { fontSize: 18, fontWeight: '700' },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  rowValue: { fontWeight: '600' },
-  logoutButton: { borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 'auto' },
-  logoutText: { fontWeight: '600', fontSize: 16 },
+  content: { padding: 20, gap: 20, paddingBottom: FloatingTabBarSpace },
+  profileCard: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  avatar: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 22, fontWeight: '800', color: '#fff' },
+  identity: { gap: 2 },
+  name: { fontSize: 17, fontWeight: '700' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
+  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  rowValue: { fontWeight: '700' },
+  logoutWrap: { marginTop: 8 },
 });

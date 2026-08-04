@@ -1,8 +1,10 @@
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { DEFAULT_CATEGORIES } from '@spendwise/shared';
 
+import { AnimatedPressable } from './AnimatedPressable';
 import { ThemedText } from './themed-text';
 import { useTheme } from '@/hooks/use-theme';
+import { Radii } from '@/constants/theme';
 
 export function CategoryPicker({
   value,
@@ -18,13 +20,14 @@ export function CategoryPicker({
       {DEFAULT_CATEGORIES.map((category) => {
         const selected = category.name === value;
         return (
-          <TouchableOpacity
+          <AnimatedPressable
             key={category.name}
             onPress={() => onChange(category.name)}
+            scaleTo={0.94}
             style={[
               styles.chip,
               {
-                backgroundColor: selected ? category.color : theme.backgroundElement,
+                backgroundColor: selected ? category.color : theme.surfaceElevated,
                 borderColor: selected ? category.color : theme.border,
               },
             ]}
@@ -36,7 +39,7 @@ export function CategoryPicker({
             >
               {category.name}
             </ThemedText>
-          </TouchableOpacity>
+          </AnimatedPressable>
         );
       })}
     </ScrollView>
@@ -49,12 +52,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderRadius: Radii.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   icon: { fontSize: 14 },
-  label: { fontSize: 13, fontWeight: '600' },
+  label: { fontSize: 13, fontWeight: '700' },
   labelSelected: { color: '#fff' },
 });

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useShareIntentContext } from 'expo-share-intent';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
 
+import { Button } from '@/components/Button';
 import { ShareIntentPreview } from '@/components/ShareIntentPreview';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -114,12 +115,11 @@ export default function ShareIntentScreen() {
   if (status === 'empty') {
     return (
       <ThemedView style={styles.centered}>
+        <ThemedText style={styles.emptyIcon}>📭</ThemedText>
         <ThemedText themeColor="textSecondary" style={styles.centeredText}>
           No shared content was found.
         </ThemedText>
-        <Pressable style={[styles.button, { backgroundColor: theme.primary }]} onPress={onCancel}>
-          <ThemedText style={styles.buttonText}>Go home</ThemedText>
-        </Pressable>
+        <Button title="Go home" onPress={onCancel} fullWidth={false} />
       </ThemedView>
     );
   }
@@ -127,15 +127,12 @@ export default function ShareIntentScreen() {
   if (status === 'error') {
     return (
       <ThemedView style={styles.centered}>
+        <ThemedText style={styles.emptyIcon}>⚠️</ThemedText>
         <ThemedText themeColor="danger" style={styles.centeredText}>
           {errorMessage}
         </ThemedText>
-        <Pressable style={[styles.button, { backgroundColor: theme.primary }]} onPress={onAddManually}>
-          <ThemedText style={styles.buttonText}>Add expense manually</ThemedText>
-        </Pressable>
-        <Pressable style={styles.secondaryButton} onPress={onCancel}>
-          <ThemedText themeColor="textSecondary">Cancel</ThemedText>
-        </Pressable>
+        <Button title="Add expense manually" onPress={onAddManually} fullWidth={false} />
+        <Button title="Cancel" onPress={onCancel} variant="ghost" fullWidth={false} />
       </ThemedView>
     );
   }
@@ -162,9 +159,7 @@ export default function ShareIntentScreen() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
+  emptyIcon: { fontSize: 36 },
   centeredText: { textAlign: 'center', fontSize: 15, lineHeight: 22 },
   content: { padding: 20, paddingBottom: 40 },
-  button: { borderRadius: 12, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  secondaryButton: { paddingVertical: 8 },
 });

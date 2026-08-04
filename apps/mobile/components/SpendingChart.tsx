@@ -1,8 +1,10 @@
 import { StyleSheet, View } from 'react-native';
 import { getCategoryMeta } from '@spendwise/shared';
 
+import { CategoryAvatar } from './CategoryAvatar';
 import { ThemedText } from './themed-text';
 import { useTheme } from '@/hooks/use-theme';
+import { Radii } from '@/constants/theme';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 export interface CategoryBreakdown {
@@ -18,28 +20,29 @@ export function SpendingChart({ data }: { data: CategoryBreakdown[] }) {
 
   if (sorted.length === 0) {
     return (
-      <ThemedText themeColor="textSecondary" style={styles.empty}>
-        No spending yet this month.
-      </ThemedText>
+      <View style={styles.emptyWrap}>
+        <ThemedText style={styles.emptyIcon}>📭</ThemedText>
+        <ThemedText themeColor="textSecondary" style={styles.empty}>
+          No spending yet this month.
+        </ThemedText>
+      </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {sorted.map(({ category, amount }) => {
-        const { icon, color } = getCategoryMeta(category);
+      {sorted.map(({ category, amount }, index) => {
+        const { color } = getCategoryMeta(category);
         const width = (amount / maxAmount) * 100;
         return (
-          <View key={category} style={styles.row}>
-            <ThemedText style={styles.icon}>{icon}</ThemedText>
+          <View key={category} style={[styles.row, index !== sorted.length - 1 && styles.rowDivider, { borderColor: theme.border }]}>
+            <CategoryAvatar category={category} size={36} />
             <View style={styles.barArea}>
               <View style={styles.labelRow}>
                 <ThemedText style={styles.label} numberOfLines={1}>
                   {category}
                 </ThemedText>
-                <ThemedText themeColor="textSecondary" style={styles.amount}>
-                  {formatCurrency(amount)}
-                </ThemedText>
+                <ThemedText style={styles.amount}>{formatCurrency(amount)}</ThemedText>
               </View>
               <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
                 <View style={[styles.fill, { width: `${width}%`, backgroundColor: color }]} />
@@ -53,14 +56,16 @@ export function SpendingChart({ data }: { data: CategoryBreakdown[] }) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 14 },
-  empty: { fontSize: 14, textAlign: 'center', paddingVertical: 24 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  icon: { fontSize: 18 },
-  barArea: { flex: 1, gap: 4 },
+  container: {},
+  emptyWrap: { alignItems: 'center', paddingVertical: 32, gap: 8 },
+  emptyIcon: { fontSize: 28 },
+  empty: { fontSize: 14 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+  rowDivider: { borderBottomWidth: StyleSheet.hairlineWidth },
+  barArea: { flex: 1, gap: 6 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  label: { fontSize: 14, fontWeight: '600', flexShrink: 1, marginRight: 8 },
-  amount: { fontSize: 13 },
-  track: { height: 6, borderRadius: 999, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: 999 },
+  label: { fontSize: 14, fontWeight: '700', flexShrink: 1, marginRight: 8 },
+  amount: { fontSize: 13, fontWeight: '600' },
+  track: { height: 7, borderRadius: Radii.pill, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: Radii.pill },
 });

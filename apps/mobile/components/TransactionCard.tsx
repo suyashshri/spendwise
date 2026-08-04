@@ -1,9 +1,11 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { Transaction } from '@spendwise/shared';
 
+import { AnimatedPressable } from './AnimatedPressable';
+import { CategoryAvatar } from './CategoryAvatar';
 import { ThemedText } from './themed-text';
-import { CategoryPill } from './CategoryPill';
 import { useTheme } from '@/hooks/use-theme';
+import { Radii } from '@/constants/theme';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatTransactionDate } from '@/utils/dateHelpers';
 
@@ -17,44 +19,58 @@ export function TransactionCard({
   const theme = useTheme();
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
-      style={[styles.card, { backgroundColor: theme.backgroundElement }]}
+      scaleTo={0.98}
+      style={[styles.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
     >
-      <View style={styles.left}>
+      <CategoryAvatar category={transaction.category} />
+
+      <View style={styles.middle}>
         <ThemedText style={styles.merchant} numberOfLines={1}>
           {transaction.merchant}
         </ThemedText>
         <View style={styles.metaRow}>
-          <CategoryPill category={transaction.category} />
+          <ThemedText themeColor="textSecondary" style={styles.category} numberOfLines={1}>
+            {transaction.category}
+          </ThemedText>
           {transaction.needsReview ? (
-            <ThemedText themeColor="warning" style={styles.reviewTag}>
-              Needs review
-            </ThemedText>
+            <View style={[styles.reviewTag, { backgroundColor: theme.warningMuted }]}>
+              <ThemedText themeColor="warning" style={styles.reviewTagText}>
+                Review
+              </ThemedText>
+            </View>
           ) : null}
         </View>
-        <ThemedText themeColor="textSecondary" style={styles.date}>
+      </View>
+
+      <View style={styles.right}>
+        <ThemedText style={styles.amount}>{formatCurrency(transaction.amount)}</ThemedText>
+        <ThemedText themeColor="textTertiary" style={styles.date}>
           {formatTransactionDate(transaction.date)}
         </ThemedText>
       </View>
-      <ThemedText style={styles.amount}>{formatCurrency(transaction.amount)}</ThemedText>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 14,
+    borderRadius: Radii.lg,
+    borderWidth: StyleSheet.hairlineWidth,
     padding: 14,
     marginBottom: 10,
+    gap: 12,
   },
-  left: { flex: 1, gap: 6, marginRight: 12 },
-  merchant: { fontSize: 16, fontWeight: '600' },
+  middle: { flex: 1, gap: 4 },
+  merchant: { fontSize: 15, fontWeight: '700' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  reviewTag: { fontSize: 12, fontWeight: '600' },
-  date: { fontSize: 12 },
-  amount: { fontSize: 16, fontWeight: '700' },
+  category: { fontSize: 13, flexShrink: 1 },
+  reviewTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: Radii.pill },
+  reviewTagText: { fontSize: 11, fontWeight: '700' },
+  right: { alignItems: 'flex-end', gap: 2 },
+  amount: { fontSize: 15, fontWeight: '800' },
+  date: { fontSize: 11 },
 });

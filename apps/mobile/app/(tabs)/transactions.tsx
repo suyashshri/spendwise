@@ -1,18 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DEFAULT_CATEGORY_NAMES } from '@spendwise/shared';
 
+import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { ThemedText } from '@/components/themed-text';
 import { TransactionCard } from '@/components/TransactionCard';
+import { Elevation, FloatingTabBarSpace, Radii } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useTransactionStore } from '@/store/transactionStore';
 
@@ -39,12 +35,14 @@ export default function TransactionsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top']}>
       <View style={styles.header}>
         <ThemedText type="subtitle">Transactions</ThemedText>
-        <Pressable
-          style={[styles.addButton, { backgroundColor: theme.primary }]}
+        <AnimatedPressable
           onPress={() => router.push('/transaction/new')}
+          scaleTo={0.92}
+          style={[styles.addButton, { backgroundColor: theme.primary, shadowColor: theme.primary }, Elevation.floating]}
         >
-          <ThemedText style={styles.addButtonText}>+ Add</ThemedText>
-        </Pressable>
+          <Ionicons name="add" size={18} color="#fff" />
+          <ThemedText style={styles.addButtonText}>Add</ThemedText>
+        </AnimatedPressable>
       </View>
 
       <ScrollView
@@ -55,23 +53,26 @@ export default function TransactionsScreen() {
         {[ALL, ...DEFAULT_CATEGORY_NAMES].map((category) => {
           const selected = category === activeCategory;
           return (
-            <Pressable
+            <AnimatedPressable
               key={category}
               onPress={() => setActiveCategory(category)}
+              scaleTo={0.94}
               style={[
                 styles.filterChip,
                 {
-                  backgroundColor: selected ? theme.primary : theme.backgroundElement,
+                  backgroundColor: selected ? theme.primary : theme.surfaceElevated,
+                  borderColor: selected ? theme.primary : theme.border,
                 },
               ]}
             >
               <ThemedText
                 style={styles.filterChipText}
                 themeColor={selected ? undefined : 'textSecondary'}
+                type="default"
               >
                 {category}
               </ThemedText>
-            </Pressable>
+            </AnimatedPressable>
           );
         })}
       </ScrollView>
@@ -80,15 +81,19 @@ export default function TransactionsScreen() {
         data={filtered}
         keyExtractor={(t) => t.id}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => fetchTransactions()} />}
+        onRefresh={() => fetchTransactions()}
+        refreshing={isLoading}
         renderItem={({ item }) => (
           <TransactionCard transaction={item} onPress={() => router.push(`/transaction/${item.id}`)} />
         )}
         ListEmptyComponent={
           !isLoading ? (
-            <ThemedText themeColor="textSecondary" style={styles.empty}>
-              No transactions in this category yet.
-            </ThemedText>
+            <View style={styles.emptyWrap}>
+              <ThemedText style={styles.emptyIcon}>🧾</ThemedText>
+              <ThemedText themeColor="textSecondary" style={styles.empty}>
+                No transactions in this category yet.
+              </ThemedText>
+            </View>
           ) : null
         }
       />
@@ -105,11 +110,20 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
   },
-  addButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },
-  addButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  filterRow: { alignItems: 'flex-start', gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
-  filterChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 },
-  filterChipText: { fontSize: 13, fontWeight: '600' },
-  list: { paddingHorizontal: 20, paddingBottom: 40 },
-  empty: { textAlign: 'center', paddingVertical: 40, fontSize: 14 },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: Radii.pill,
+  },
+  addButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  filterRow: { alignItems: 'flex-start', gap: 8, paddingHorizontal: 20, paddingBottom: 14 },
+  filterChip: { borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radii.pill },
+  filterChipText: { fontSize: 13, fontWeight: '700' },
+  list: { paddingHorizontal: 20, paddingBottom: FloatingTabBarSpace },
+  emptyWrap: { alignItems: 'center', paddingVertical: 48, gap: 10 },
+  emptyIcon: { fontSize: 32 },
+  empty: { textAlign: 'center', fontSize: 14 },
 });
