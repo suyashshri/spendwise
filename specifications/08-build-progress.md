@@ -53,7 +53,22 @@ password only for now; offline queue/sync (Phase 5); push notifications (Phase 5
 
 ## Phase 3 — Intelligence Layer
 
-Status: **not started**
+Status: **complete**, verified end-to-end against the local dev server (see verification log below).
+
+- [x] OCR screenshot parsing (`services/ocrParser.ts`, Tesseract.js) — `POST /api/parse/image` now
+      fully implemented instead of `400 NOT_IMPLEMENTED`; multer memory-storage upload, 8MB cap
+- [x] Budgets CRUD (`routes/budgets.ts`) — spent/remaining computed live from `Transaction`, not
+      denormalized onto `Budget`
+- [x] Analytics (`routes/analytics.ts`) — summary, trends, compare, top-merchants
+- [x] Recurring transaction detection (`services/recurringDetector.ts`) — runs incrementally after
+      every transaction save, no cron needed
+- [x] Mobile: Budgets tab now has a real "Category budgets" section (add/list/delete) wired to
+      `GET/POST/DELETE /api/budgets` via a new `store/budgetStore.ts` + `hooks/useBudgets.ts`
+- [x] `specifications/11-phase3-intelligence-layer.md` documents all of the above in detail
+
+See [11-phase3-intelligence-layer.md](11-phase3-intelligence-layer.md) for the recurring-detection
+algorithm and its known limitation (exact-string merchant matching — "Netflix" vs "NETFLIX.COM"
+wouldn't be linked).
 
 ## Phase 4 — Web Dashboard
 
@@ -121,6 +136,39 @@ sheet.
 
 ---
 
+## Verification log (Phase 3)
+
+Ran against the same local dev setup as Phase 1/2 (Docker MongoDB, dev server on :4000, no live
+`GEMINI_API_KEY` — so text/image parsing again exercised the AI-fallback path, not real Gemini):
+
+1. `npm run typecheck:server` and `npx tsc --noEmit` (mobile) — both clean.
+2. OCR: generated a synthetic UPI-confirmation screenshot (Pillow, rendered "Paid Rs.680 to Dominos
+   Pizza via PhonePe UPI, UPI Ref No: 887766554433") and sent it to `POST /api/parse/image` for real
+   — Tesseract.js OCR'd it correctly, and the extracted text flowed through the exact same
+   fallback-regex parse path as `/text`, correctly pulling `amount: 680`, `merchant: "Dominos
+   Pizza"`, `upiRefId: "887766554433"`.
+3. Budgets: created a Food & Dining monthly budget via `POST /api/budgets`, confirmed `GET
+   /api/budgets` returns correct `spent`/`remaining` scoped to the current month (correctly excluded
+   an older transaction from a prior month), and confirmed a duplicate `{category, period}` create
+   returns `409`.
+4. Analytics: `summary`, `trends`, `compare`, and `top-merchants` all hit against real seeded
+   transaction data and returned correctly-aggregated, correctly-scoped results (verified `compare`'s
+   `delta` sign and `byCategory` percentages summed sensibly).
+5. Recurring detection: created three ₹499 "Netflix" transactions one calendar month apart via
+   manual add — the 1st and 2nd stayed `isRecurring: false`, and the 3rd correctly flipped all three
+   to `true` in one call, confirming both the "needs 3 occurrences" threshold and the "back-fill
+   earlier months once the pattern is confirmed" behavior.
+6. `npx expo export --platform web` — all 15 routes still export cleanly after the Budgets tab's new
+   category-budgets UI.
+
+**Not verified**: the real Gemini happy path (same caveat as Phase 1 — no live API key in this
+environment) and Tesseract.js OCR against an actual phone screenshot (only a synthetic rendered test
+image was available here — real screenshots have compression artifacts, variable fonts/DPI, and UI
+chrome around the text that could behave differently). Both are worth a real-key/real-screenshot pass
+before shipping.
+
+---
+
 ## Notes / decisions made along the way
 
 - `packages/server` is a workspace member even though it lives under `packages/` not `apps/` — kept
@@ -153,3 +201,13 @@ sheet.
 - Budgets tab needed `User.monthlyBudget` to actually be settable, so `PATCH /api/auth/me` was added
   (small, in-scope addition to the already-existing auth route family) rather than either faking the
   UI or pulling the whole Phase 3 `Budget` CRUD forward.
+- `multer` was re-added at `^2.2.0` (not the vulnerable `1.x` line originally removed in Phase 1)
+  now that `/api/parse/image` is actually implemented; `@types/multer@^2.2.0` alongside it since
+  multer 2.x doesn't bundle its own type declarations.
+- OCR went with Tesseract.js over Google Cloud Vision (the spec listed both as options) specifically
+  to avoid requiring a GCP project/billing/credentials to get screenshot parsing working at all — see
+  [11-phase3-intelligence-layer.md](11-phase3-intelligence-layer.md) for the tradeoff in detail.
+- `Budget`'s `spent`/`remaining` are computed live from `Transaction` on every read rather than
+  stored on the `Budget` document, so editing/deleting a transaction is instantly reflected without
+  any denormalization to keep in sync — same pattern the Phase 1 `budgetChecker.ts` already used,
+  now shared via an exported `periodStart()` so the two can't compute "current period" differently.

@@ -10,7 +10,7 @@ export interface BudgetAlert {
   percentUsed: number;
 }
 
-function periodStart(period: "monthly" | "weekly"): Date {
+export function periodStart(period: "monthly" | "weekly"): Date {
   const now = new Date();
   if (period === "weekly") {
     const day = now.getDay();

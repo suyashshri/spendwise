@@ -52,8 +52,25 @@ If the Gemini API call fails (timeout, 5xx, quota) or its response can't be pars
 - This never throws a 500 back to the client for the parse endpoints — a degraded save beats losing
   the user's transaction.
 
-## OCR path (screenshot share)
+## OCR path (screenshot share) — implemented Phase 3
 
-`services/ocrParser.ts` runs the uploaded image through Google Cloud Vision (primary) or
-Tesseract.js (fallback / no-API-key dev mode), producing raw text that is then fed through the exact
-same `aiCategorizer` used by the text path — one categorization code path regardless of input source.
+`services/ocrParser.ts` runs the uploaded image through **Tesseract.js**, producing raw text that is
+then fed through the exact same `categorizeTransactionText()` used by the text path — one
+categorization code path regardless of input source (see `parseAndSaveTransaction()` in
+`routes/parse.ts`).
+
+Went with Tesseract.js over Google Cloud Vision (the spec's other option) as the actual
+implementation: it's bundled, needs no API key/billing/GCP project, and is good enough for the
+fairly clean, high-contrast text typical of a payment app's confirmation screen. A worker is spun up
+fresh per request (`createWorker("eng")` → `recognize()` → `terminate()`) rather than pooled — costs
+~1-2s of language-data load per screenshot, acceptable for how infrequently this endpoint is hit
+relative to the text path. Revisit with a pooled/persistent worker (or swap to Cloud Vision) if
+screenshot volume ever makes that latency matter.
+
+If OCR extracts no text at all, `/api/parse/image` returns `400 OCR_EMPTY` before ever calling
+Gemini — verified end-to-end with a synthetic test screenshot (rendered "Paid Rs.680 to Dominos
+Pizza via PhonePe UPI, UPI Ref No: 887766554433") which OCR'd and parsed correctly, including
+`upiRefId` extraction for dedup.
+
+Uploads are handled by `multer` (`middleware/upload.ts`), memory storage only (never written to
+disk — OCR runs directly against the in-memory buffer), capped at 8MB.

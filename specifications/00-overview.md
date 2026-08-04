@@ -58,6 +58,8 @@ See [01-monorepo-structure.md](01-monorepo-structure.md) for the full tree.
 | [07-environment-variables.md](07-environment-variables.md) | All env vars, per app |
 | [08-build-progress.md](08-build-progress.md) | Living log of what's built, phase by phase |
 | [09-mobile-app.md](09-mobile-app.md) | Mobile app architecture — screens, stores, share-intent wiring |
+| [10-mobile-design-system.md](10-mobile-design-system.md) | Mobile design tokens, primitives, and two layout bugs caught during the UI pass |
+| [11-phase3-intelligence-layer.md](11-phase3-intelligence-layer.md) | OCR, budgets CRUD, analytics, recurring detection |
 
 ## Build phases (from the original brief)
 

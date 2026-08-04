@@ -10,3 +10,7 @@ build/
 coverage/
 *.tsbuildinfo
 .turbo/
+
+# Tesseract.js downloads its OCR language data to cwd at runtime (services/ocrParser.ts) —
+# regenerable, not source.
+*.traineddata

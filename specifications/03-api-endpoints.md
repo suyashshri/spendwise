@@ -22,17 +22,24 @@ See [04-auth-flow.md](04-auth-flow.md) for token details.
 | POST | `/api/parse/image` | multipart/form-data, field `screenshot` | OCR -> parsed & saved `{ transaction }` |
 | POST | `/api/parse/categorize` | `{ transactionId, category }` | `{ transaction }` (re-categorized, treated as a correction signal) |
 
-### `POST /api/parse/text` logic
+### `POST /api/parse/text` and `POST /api/parse/image` logic
 
-1. Receive raw shared text (`rawInput`).
-2. Send to Gemini with the prompt in [05-ai-categorization.md](05-ai-categorization.md).
+Both share `parseAndSaveTransaction()` in `routes/parse.ts` — one code path regardless of input
+source, per [05-ai-categorization.md](05-ai-categorization.md):
+
+1. Get raw text — typed directly for `/text`, or via `services/ocrParser.ts` (Tesseract.js) for
+   `/image`. If OCR finds no text at all, `/image` returns `400 OCR_EMPTY` before ever calling the AI.
+2. Send the raw text to Gemini with the prompt in [05-ai-categorization.md](05-ai-categorization.md).
 3. Parse the AI's JSON response: `amount`, `merchant`, `date`, `upiRefId`, `suggestedCategory`, `confidence`.
 4. If `upiRefId` is present, check for an existing `Transaction` with the same `upiRefId` for this
    user — if found, return the existing transaction with `duplicate: true` instead of creating a new one.
-5. Save to `Transaction` (`inputType: "share_text"`, `needsReview: confidence < 0.7`).
-6. Check budget limits for the assigned category (and overall budget) via `budgetChecker.ts`; if a
-   threshold configured in `Budget.alertAt` is crossed, trigger a push notification.
-7. Return the saved transaction to the client.
+5. Save to `Transaction` (`inputType: "share_text"` or `"screenshot"`, `needsReview: confidence < 0.7`).
+6. Run `services/recurringDetector.ts` for the transaction's merchant (see
+   [11-phase3-intelligence-layer.md](11-phase3-intelligence-layer.md)).
+7. Check budget limits for the assigned category (and overall budget) via `budgetChecker.ts`,
+   returned as `budgetAlerts` in the response — push notification *delivery* for these is still
+   Phase 5, the computation itself is live.
+8. Return the saved transaction to the client.
 
 ## Transactions (protected)
 

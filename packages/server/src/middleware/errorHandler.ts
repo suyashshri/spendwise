@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { MulterError } from "multer";
 import { AppError } from "../utils/AppError";
 
 export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
@@ -9,6 +10,13 @@ export function notFoundHandler(req: Request, _res: Response, next: NextFunction
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({ error: { message: err.message, code: err.code } });
+    return;
+  }
+
+  if (err instanceof MulterError) {
+    const message =
+      err.code === "LIMIT_FILE_SIZE" ? "Screenshot is too large (max 8MB)." : "Could not process the uploaded file.";
+    res.status(400).json({ error: { message, code: `UPLOAD_${err.code}` } });
     return;
   }
 

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Types } from "mongoose";
 import { z } from "zod";
 import { TRANSACTIONS_DEFAULT_PAGE_SIZE } from "@spendwise/shared";
 import { Transaction } from "../models/Transaction";
@@ -7,6 +8,7 @@ import { validateBody, validateQuery } from "../middleware/validation";
 import { asyncHandler } from "../middleware/errorHandler";
 import { AppError } from "../utils/AppError";
 import { createTransactionSchema, updateTransactionSchema } from "../utils/schemas";
+import { detectRecurringForMerchant } from "../services/recurringDetector";
 
 const router = Router();
 router.use(requireAuth);
@@ -74,8 +76,10 @@ router.post(
       note?: string;
     };
 
+    const userId = new Types.ObjectId(req.user!.id);
+
     const transaction = await Transaction.create({
-      userId: req.user!.id,
+      userId,
       amount,
       merchant,
       category,
@@ -86,7 +90,10 @@ router.post(
       needsReview: false,
     });
 
-    res.status(201).json({ transaction: transaction.toJSON() });
+    await detectRecurringForMerchant(userId, transaction.merchant);
+    const saved = (await Transaction.findById(transaction._id)) ?? transaction;
+
+    res.status(201).json({ transaction: saved.toJSON() });
   })
 );
 
