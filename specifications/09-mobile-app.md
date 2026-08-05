@@ -44,7 +44,7 @@ See [03-api-endpoints.md](03-api-endpoints.md).
 | `(tabs)/budgets.tsx` | Overall monthly budget vs. spend-to-date (editable), category breakdown chart |
 | `(tabs)/profile.tsx` | Account info, currency, sign-in method, log out |
 | `transaction/new.tsx` | Manual expense entry (modal) — amount, merchant, category picker, note |
-| `transaction/[id].tsx` | Detail/edit — category, note, delete; falls back to `GET /transactions/:id` if the transaction isn't already in the store (e.g. a cold start landing directly on this route) |
+| `transaction/[id].tsx` | Detail/edit — amount, currency, merchant, category, note, delete (full parity with the web edit form and `PATCH /transactions/:id`; date isn't editable on either client yet); falls back to `GET /transactions/:id` if the transaction isn't already in the store (e.g. a cold start landing directly on this route) |
 | `share-intent.tsx` | Share-intent confirmation screen — see below |
 
 State/data comes from `store/transactionStore.ts` (Zustand; fetch/add/update/delete against the
