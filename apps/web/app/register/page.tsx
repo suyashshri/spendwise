@@ -1,5 +1,6 @@
 "use client";
 
+import { Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -51,11 +52,11 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground">
-            ₹
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+            <Wallet className="size-6" />
           </div>
           <CardTitle className="text-xl">Create your account</CardTitle>
-          <CardDescription>Start tracking every rupee automatically</CardDescription>
+          <CardDescription>Start tracking every expense automatically</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">

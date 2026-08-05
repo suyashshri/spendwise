@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
@@ -44,13 +45,13 @@ export default function RegisterScreen() {
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <FadeInView style={styles.brandWrap}>
             <LinearGradient colors={Gradients[scheme].hero} style={styles.logo}>
-              <ThemedText style={styles.logoText}>₹</ThemedText>
+              <Ionicons name="wallet" size={30} color="#fff" />
             </LinearGradient>
             <ThemedText type="title" style={styles.brand}>
               Create account
             </ThemedText>
             <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-              Start tracking every rupee automatically
+              Start tracking every expense automatically
             </ThemedText>
           </FadeInView>
 
@@ -105,7 +106,6 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   brandWrap: { alignItems: 'center', marginBottom: 36, gap: 6 },
   logo: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  logoText: { fontSize: 30, fontWeight: '800', color: '#fff' },
   brand: { fontSize: 28, lineHeight: 34 },
   subtitle: { fontSize: 14 },
   form: { gap: 16 },
