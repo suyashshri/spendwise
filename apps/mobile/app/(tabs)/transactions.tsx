@@ -26,10 +26,23 @@ export default function TransactionsScreen() {
   const { uploadScreenshot, isUploading } = useScreenshotUpload();
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
   const [exportOpen, setExportOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  // Deliberately not `refreshing={isLoading}` — that flag is already true on the very first
+  // render (the effect above fires before the list has laid out even once), which puts iOS's
+  // native RefreshControl in an "active" state before any pull gesture ever happened. That leaves
+  // a stuck content offset baked into the scroll view — the list visually renders shifted down by
+  // a fixed amount no matter how many items there are. `isRefreshing` only ever gets set by an
+  // actual pull-to-refresh, so the control starts closed and the offset bug can't trigger.
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchTransactions();
+    setIsRefreshing(false);
+  };
 
   const filtered = useMemo(
     () => (activeCategory === ALL ? transactions : transactions.filter((t) => t.category === activeCategory)),
@@ -106,8 +119,8 @@ export default function TransactionsScreen() {
         keyExtractor={(t) => t.id}
         style={styles.listContainer}
         contentContainerStyle={styles.list}
-        onRefresh={() => fetchTransactions()}
-        refreshing={isLoading}
+        onRefresh={onRefresh}
+        refreshing={isRefreshing}
         renderItem={({ item }) => (
           <TransactionCard transaction={item} onPress={() => router.push(`/transaction/${item.id}`)} />
         )}
