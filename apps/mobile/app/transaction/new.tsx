@@ -5,7 +5,7 @@ import { DEFAULT_CATEGORY_NAMES, getCurrencyInfo } from '@spendwise/shared';
 
 import { Button } from '@/components/Button';
 import { CategoryPicker } from '@/components/CategoryPicker';
-import { CurrencyPicker } from '@/components/CurrencyPicker';
+import { CurrencyDropdown } from '@/components/CurrencyDropdown';
 import { TextField } from '@/components/TextField';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -73,7 +73,7 @@ export default function NewTransactionScreen() {
               autoFocus
             />
           </View>
-          <CurrencyPicker value={currency} onChange={setCurrency} />
+          <CurrencyDropdown value={currency} onChange={setCurrency} />
         </View>
 
         <TextField

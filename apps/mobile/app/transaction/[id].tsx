@@ -7,7 +7,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { CategoryAvatar } from '@/components/CategoryAvatar';
 import { CategoryPicker } from '@/components/CategoryPicker';
-import { CurrencyPicker } from '@/components/CurrencyPicker';
+import { CurrencyDropdown } from '@/components/CurrencyDropdown';
 import { TextField } from '@/components/TextField';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -131,7 +131,7 @@ export default function TransactionDetailScreen() {
               onChangeText={setAmount}
             />
           </View>
-          <CurrencyPicker value={currency} onChange={setCurrency} />
+          <CurrencyDropdown value={currency} onChange={setCurrency} />
           {user && transaction.currency !== user.currency ? (
             <ThemedText themeColor="textSecondary" style={styles.converted}>
               ≈ {formatCurrency(transaction.amountInBaseCurrency, user.currency)} as originally recorded
