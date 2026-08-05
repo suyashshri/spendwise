@@ -89,7 +89,27 @@ Status: **complete**, verified end-to-end.
 
 ## Phase 4 — Web Dashboard
 
-Status: **not started**
+Status: **complete**, verified server-side/protocol-level against the live dev server (no browser
+available in this environment — see verification log in
+[14-web-dashboard.md](14-web-dashboard.md)).
+
+- [x] Next.js 16 (App Router, Turbopack) + Tailwind v4 + shadcn/ui, themed to the mobile app's
+      violet brand. Read Next 16's bundled docs directly before writing routing/auth code — it
+      renamed `middleware.ts`→`proxy.ts` (`proxy()` not `middleware()`) and made
+      `params`/`searchParams`/`cookies()`/`headers()` fully async, both of which would have
+      silently broken auth if assumed unchanged from training data.
+- [x] Custom auth (not NextAuth) — httpOnly refresh cookie via 3 Route Handlers, in-memory access
+      token client-side, `proxy.ts` gates on cookie presence. Reuses the Express `/api/auth/*`
+      endpoints as-is; no backend changes needed.
+- [x] Dashboard, Transactions, Budgets, Analytics pages — feature parity with mobile (manual
+      add/edit/delete, category + budget CRUD, multi-currency display), plus recharts-based trends/
+      compare/top-merchants charts built per the dataviz skill's method.
+- [x] `specifications/14-web-dashboard.md` documents the auth architecture, Next 16 findings, and
+      chart design decisions (including a CVD-safety gap found in the mobile app's original
+      category palette, mitigated with labels rather than re-picking colors mid-project)
+
+See [14-web-dashboard.md](14-web-dashboard.md) for what's not verified (in-browser rendering) and
+known gaps (analytics compare can't cross a year boundary, no dark-mode toggle yet).
 
 ## Phase 5 — Polish
 

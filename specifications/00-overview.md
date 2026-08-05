@@ -62,6 +62,7 @@ See [01-monorepo-structure.md](01-monorepo-structure.md) for the full tree.
 | [11-phase3-intelligence-layer.md](11-phase3-intelligence-layer.md) | OCR, budgets CRUD, analytics, recurring detection |
 | [12-multi-currency.md](12-multi-currency.md) | Per-transaction currency, conversion, exchange rate service |
 | [13-custom-categories.md](13-custom-categories.md) | User-created categories, AI prompt scoping fix |
+| [14-web-dashboard.md](14-web-dashboard.md) | Next.js web app — auth architecture, Next 16 gotchas, chart design |
 
 ## Build phases (from the original brief)
 
