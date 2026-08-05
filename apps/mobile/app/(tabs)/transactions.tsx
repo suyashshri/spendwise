@@ -104,6 +104,7 @@ export default function TransactionsScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(t) => t.id}
+        style={styles.listContainer}
         contentContainerStyle={styles.list}
         onRefresh={() => fetchTransactions()}
         refreshing={isLoading}
@@ -159,6 +160,7 @@ const styles = StyleSheet.create({
   filterRow: { alignItems: 'flex-start', gap: 8, paddingHorizontal: 20, paddingBottom: 18 },
   filterChip: { borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radii.pill },
   filterChipText: { fontSize: 13, fontWeight: '700' },
+  listContainer: { flex: 1 },
   list: { paddingHorizontal: 20, paddingBottom: FloatingTabBarSpace },
   emptyWrap: { alignItems: 'center', paddingVertical: 48, gap: 10 },
   emptyIcon: { fontSize: 32 },
