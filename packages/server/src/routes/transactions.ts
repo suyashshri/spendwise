@@ -8,11 +8,13 @@ import { requireAuth } from "../middleware/auth";
 import { validateBody, validateQuery } from "../middleware/validation";
 import { asyncHandler } from "../middleware/errorHandler";
 import { AppError } from "../utils/AppError";
-import { createTransactionSchema, updateTransactionSchema } from "../utils/schemas";
+import { createTransactionSchema, updateTransactionSchema, exportQuerySchema } from "../utils/schemas";
 import { detectRecurringForMerchant } from "../services/recurringDetector";
 import { getExchangeRate } from "../services/exchangeRateService";
 import { checkBudgetsForTransaction } from "../services/budgetChecker";
 import { sendBudgetAlertPushes } from "../services/pushNotificationService";
+import { transactionsToCsv } from "../services/csvExportService";
+import { generateTransactionsPdf } from "../services/pdfExportService";
 
 const router = Router();
 router.use(requireAuth);
@@ -54,6 +56,51 @@ router.get(
       transactions: transactions.map((t) => t.toJSON()),
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
+  })
+);
+
+router.get(
+  // Must be registered before "/:id" — otherwise Express would match "export" as an :id param.
+  "/export",
+  validateQuery(exportQuerySchema),
+  asyncHandler(async (req, res) => {
+    const { month, year, category, format } = req.query as unknown as z.infer<typeof exportQuerySchema>;
+    const userId = req.user!.id;
+
+    const filter: Record<string, unknown> = { userId };
+    if (category) filter.category = category;
+    if (month && year) {
+      filter.date = { $gte: new Date(year, month - 1, 1), $lt: new Date(year, month, 1) };
+    } else if (year) {
+      filter.date = { $gte: new Date(year, 0, 1), $lt: new Date(year + 1, 0, 1) };
+    }
+
+    const transactions = await Transaction.find(filter).sort({ date: 1 });
+    const rangeLabel =
+      month && year
+        ? new Date(year, month - 1, 1).toLocaleString("en-US", { month: "long", year: "numeric" })
+        : year
+          ? String(year)
+          : "All time";
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    if (format === "csv") {
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="spendwise-transactions-${stamp}.csv"`);
+      res.send(transactionsToCsv(transactions));
+      return;
+    }
+
+    const user = await User.findById(userId).select("name currency");
+    const doc = generateTransactionsPdf(transactions, {
+      userName: user?.name ?? "",
+      userCurrency: user?.currency ?? DEFAULT_CURRENCY,
+      rangeLabel,
+    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="spendwise-transactions-${stamp}.pdf"`);
+    doc.pipe(res);
+    doc.end();
   })
 );
 

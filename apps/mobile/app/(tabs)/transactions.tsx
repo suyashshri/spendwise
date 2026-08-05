@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable } from '@/components/AnimatedPressable';
+import { ExportSheet } from '@/components/ExportSheet';
 import { ThemedText } from '@/components/themed-text';
 import { TransactionCard } from '@/components/TransactionCard';
 import { Elevation, FloatingTabBarSpace, Radii } from '@/constants/theme';
@@ -24,6 +25,7 @@ export default function TransactionsScreen() {
   const { categories } = useCategories();
   const { uploadScreenshot, isUploading } = useScreenshotUpload();
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
@@ -39,6 +41,13 @@ export default function TransactionsScreen() {
       <View style={styles.header}>
         <ThemedText type="subtitle">Transactions</ThemedText>
         <View style={styles.headerActions}>
+          <AnimatedPressable
+            onPress={() => setExportOpen(true)}
+            scaleTo={0.9}
+            style={[styles.iconButton, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
+          >
+            <Ionicons name="download-outline" size={18} color={theme.text} />
+          </AnimatedPressable>
           <AnimatedPressable
             onPress={uploadScreenshot}
             scaleTo={0.9}
@@ -113,6 +122,12 @@ export default function TransactionsScreen() {
           ) : null
         }
       />
+
+      <ExportSheet
+        visible={exportOpen}
+        onClose={() => setExportOpen(false)}
+        category={activeCategory === ALL ? undefined : activeCategory}
+      />
     </SafeAreaView>
   );
 }
@@ -138,9 +153,10 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
+    height: 36,
     paddingHorizontal: 14,
-    paddingVertical: 9,
     borderRadius: Radii.pill,
   },
   addButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },

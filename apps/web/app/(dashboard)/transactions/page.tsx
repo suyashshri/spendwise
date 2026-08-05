@@ -1,16 +1,27 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import type { Transaction } from "@spendwise/shared";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TransactionFormDialog } from "@/components/transaction-form-dialog";
+import { api, extractApiErrorMessage } from "@/lib/api";
 import { useCategoryStore } from "@/store/categoryStore";
 import { useTransactionStore } from "@/store/transactionStore";
 import { currentMonthYear, formatCurrency, formatDate, monthLabel } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+type ExportFormat = "csv" | "pdf";
 
 const ALL = "all";
 
@@ -25,6 +36,7 @@ export default function TransactionsPage() {
   const [category, setCategory] = useState(ALL);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
 
   useEffect(() => {
     fetchTransactions({ month, year, category: category === ALL ? undefined : category });
@@ -55,6 +67,28 @@ export default function TransactionsPage() {
     }
   };
 
+  const onExport = async (format: ExportFormat) => {
+    setExportingFormat(format);
+    try {
+      const response = await api.get("/transactions/export", {
+        params: { format, month, year, category: category === ALL ? undefined : category },
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(response.data as Blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `spendwise-transactions-${year}-${String(month).padStart(2, "0")}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(extractApiErrorMessage(err));
+    } finally {
+      setExportingFormat(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -62,10 +96,25 @@ export default function TransactionsPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
           <p className="text-sm text-muted-foreground">{transactions.length} transactions</p>
         </div>
-        <Button onClick={onAdd} className="h-9">
-          <Plus className="size-4" />
-          Add expense
-        </Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              disabled={exportingFormat !== null}
+              className={cn(buttonVariants({ variant: "outline" }), "h-9")}
+            >
+              {exportingFormat ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+              Export
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onExport("csv")}>Export as CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onExport("pdf")}>Export as PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={onAdd} className="h-9">
+            <Plus className="size-4" />
+            Add expense
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card p-3 ring-1 ring-foreground/10">

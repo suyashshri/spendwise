@@ -68,6 +68,13 @@ export const updateBudgetSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const exportQuerySchema = z.object({
+  month: z.coerce.number().min(1).max(12).optional(),
+  year: z.coerce.number().min(2000).max(2100).optional(),
+  category: z.string().optional(),
+  format: z.enum(["csv", "pdf"]),
+});
+
 export const pushTokenSchema = z.object({
   token: z.string().min(1),
 });

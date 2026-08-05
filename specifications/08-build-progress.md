@@ -127,7 +127,11 @@ Status: **in progress**
       registration no-ops until `eas init` sets `app.json`'s `extra.eas.projectId`. See
       [16-push-notifications.md](16-push-notifications.md).
 - [ ] Offline sync
-- [ ] CSV/PDF export
+- [x] CSV/PDF export — one backend endpoint (`GET /api/transactions/export`) generates both formats
+      server-side (hand-rolled CSV escaping, `pdfkit` for the PDF report) so mobile and web share
+      identical output instead of each re-implementing it. Mobile: download-to-cache + native share
+      sheet. Web: blob download via the existing BFF-lite-authenticated axios client. See
+      [17-export.md](17-export.md).
 - [ ] Onboarding flow
 
 ---
