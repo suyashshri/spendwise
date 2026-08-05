@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { RefreshControl, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -11,6 +11,7 @@ import { SpendingChart } from '@/components/SpendingChart';
 import { ThemedText } from '@/components/themed-text';
 import { TransactionCard } from '@/components/TransactionCard';
 import { Elevation, FloatingTabBarSpace, Gradients, Radii } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useMonthlyTransactions } from '@/hooks/useTransactions';
@@ -20,7 +21,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const scheme = useColorScheme();
   const router = useRouter();
   const { user } = useAuth();
   const { month, year } = currentMonthYear();

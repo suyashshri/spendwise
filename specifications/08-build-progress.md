@@ -109,11 +109,21 @@ available in this environment — see verification log in
       category palette, mitigated with labels rather than re-picking colors mid-project)
 
 See [14-web-dashboard.md](14-web-dashboard.md) for what's not verified (in-browser rendering) and
-known gaps (analytics compare can't cross a year boundary, no dark-mode toggle yet).
+known gaps (analytics compare can't cross a year boundary).
 
 ## Phase 5 — Polish
 
-Status: **not started**
+Status: **in progress**
+
+- [x] Dark mode toggle (Light/Dark/System) — both apps. Mobile: found and fixed 5 screens that
+      imported `useColorScheme` directly from `react-native` instead of the app's own hook, which
+      would have silently bypassed any manual override. Web: localStorage-persisted + a no-flash
+      inline script so a returning user with a dark preference doesn't see a light-theme flash on
+      load. See [15-dark-mode.md](15-dark-mode.md).
+- [ ] Push notifications for budget alerts
+- [ ] Offline sync
+- [ ] CSV/PDF export
+- [ ] Onboarding flow
 
 ---
 

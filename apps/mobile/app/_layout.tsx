@@ -3,9 +3,9 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter } from 'expo-r
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/hooks/useAuth';
 
 SplashScreen.preventAutoHideAsync();
@@ -55,7 +55,9 @@ function AppNavigator() {
             <Stack.Screen name="auth/register" options={{ headerShown: false }} />
           </Stack.Protected>
         </Stack>
-        <StatusBar style="auto" />
+        {/* Not style="auto": that follows the OS setting directly, which would ignore a manual
+            light/dark override from the theme store. */}
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PASSWORD_MIN_LENGTH } from '@spendwise/shared';
 
@@ -10,12 +10,13 @@ import { FadeInView } from '@/components/FadeInView';
 import { TextField } from '@/components/TextField';
 import { ThemedText } from '@/components/themed-text';
 import { Gradients } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function RegisterScreen() {
   const theme = useTheme();
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const scheme = useColorScheme();
   const { register } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

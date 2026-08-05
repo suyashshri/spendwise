@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Receipt, Wallet, BarChart3, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -48,6 +49,11 @@ export function SidebarNav() {
           );
         })}
       </nav>
+
+      <div className="flex items-center justify-between px-4 py-3">
+        <span className="text-xs font-medium text-sidebar-foreground/50">Appearance</span>
+        <ThemeToggle />
+      </div>
 
       <div className="flex items-center gap-3 border-t border-sidebar-border px-4 py-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
