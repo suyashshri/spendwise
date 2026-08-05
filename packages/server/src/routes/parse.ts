@@ -14,6 +14,7 @@ import { extractTextFromImage } from "../services/ocrParser";
 import { checkBudgetsForTransaction } from "../services/budgetChecker";
 import { detectRecurringForMerchant } from "../services/recurringDetector";
 import { getExchangeRate } from "../services/exchangeRateService";
+import { sendBudgetAlertPushes } from "../services/pushNotificationService";
 import type { AiParseResult, TransactionInputType } from "@spendwise/shared";
 
 const router = Router();
@@ -64,6 +65,7 @@ async function parseAndSaveTransaction(
 
   await detectRecurringForMerchant(userId, transaction.merchant);
   const budgetAlerts = await checkBudgetsForTransaction(userId, transaction.category);
+  await sendBudgetAlertPushes(userId, budgetAlerts);
 
   // Re-fetch: detectRecurringForMerchant may have just flipped this transaction's isRecurring
   // via a bulk updateMany, which wouldn't be reflected on the in-memory `transaction` doc above.

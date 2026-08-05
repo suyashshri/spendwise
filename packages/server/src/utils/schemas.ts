@@ -68,6 +68,10 @@ export const updateBudgetSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const pushTokenSchema = z.object({
+  token: z.string().min(1),
+});
+
 export const createCategorySchema = z.object({
   name: z.string().min(1).max(40),
   icon: z.string().min(1).max(8),

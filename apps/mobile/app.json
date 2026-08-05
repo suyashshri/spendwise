@@ -53,6 +53,12 @@
           "androidIntentFilters": ["text/*", "image/*"],
           "iosAppGroupIdentifier": "group.com.spendwise.app.shareextension"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#208AEF"
+        }
       ]
     ],
     "experiments": {

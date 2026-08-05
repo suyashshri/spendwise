@@ -12,6 +12,9 @@ export interface UserDocument extends Document {
   categories: string[];
   monthlyBudget?: number;
   refreshTokenVersion: number;
+  /** Expo push tokens for this user's devices — an array, not one, since the same account can be
+   * logged in on multiple phones. See specifications/16-push-notifications.md. */
+  pushTokens: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +30,7 @@ const userSchema = new Schema<UserDocument>(
     categories: { type: [String], default: [] },
     monthlyBudget: { type: Number },
     refreshTokenVersion: { type: Number, default: 0 },
+    pushTokens: { type: [String], default: [] },
   },
   {
     timestamps: true,
@@ -36,6 +40,7 @@ const userSchema = new Schema<UserDocument>(
         delete ret._id;
         delete ret.__v;
         delete ret.passwordHash;
+        delete ret.pushTokens;
         return ret;
       },
     },

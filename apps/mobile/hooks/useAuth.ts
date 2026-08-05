@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { User } from '@spendwise/shared';
 import { api, extractApiErrorMessage } from '../services/api';
+import { registerForPushNotifications, unregisterPushNotifications } from '../services/pushNotifications';
 import { useAuthStore } from '../store/authStore';
 
 interface AuthResponse {
@@ -24,6 +25,7 @@ export function useAuth() {
       try {
         const { data } = await api.post<AuthResponse>('/auth/login', { email, password });
         setSession(data);
+        void registerForPushNotifications();
         return { success: true };
       } catch (error) {
         return { success: false, message: extractApiErrorMessage(error) };
@@ -37,6 +39,7 @@ export function useAuth() {
       try {
         const { data } = await api.post<AuthResponse>('/auth/register', { email, password, name });
         setSession(data);
+        void registerForPushNotifications();
         return { success: true };
       } catch (error) {
         return { success: false, message: extractApiErrorMessage(error) };
@@ -45,7 +48,12 @@ export function useAuth() {
     [setSession]
   );
 
-  const logout = useCallback(() => clearSession(), [clearSession]);
+  const logout = useCallback(async () => {
+    // Must run before clearSession — it needs the still-live access token to authenticate the
+    // DELETE /auth/push-token call that removes this device from the account being signed out of.
+    await unregisterPushNotifications();
+    clearSession();
+  }, [clearSession]);
 
   const updateProfile = useCallback(
     async (updates: { name?: string; currency?: string; monthlyBudget?: number | null }): Promise<AuthResult> => {

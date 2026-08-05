@@ -11,6 +11,8 @@ import { AppError } from "../utils/AppError";
 import { createTransactionSchema, updateTransactionSchema } from "../utils/schemas";
 import { detectRecurringForMerchant } from "../services/recurringDetector";
 import { getExchangeRate } from "../services/exchangeRateService";
+import { checkBudgetsForTransaction } from "../services/budgetChecker";
+import { sendBudgetAlertPushes } from "../services/pushNotificationService";
 
 const router = Router();
 router.use(requireAuth);
@@ -102,9 +104,12 @@ router.post(
     });
 
     await detectRecurringForMerchant(userId, transaction.merchant);
+    const budgetAlerts = await checkBudgetsForTransaction(userId, transaction.category);
+    await sendBudgetAlertPushes(userId, budgetAlerts);
+
     const saved = (await Transaction.findById(transaction._id)) ?? transaction;
 
-    res.status(201).json({ transaction: saved.toJSON() });
+    res.status(201).json({ transaction: saved.toJSON(), budgetAlerts });
   })
 );
 

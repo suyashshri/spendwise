@@ -120,7 +120,12 @@ Status: **in progress**
       would have silently bypassed any manual override. Web: localStorage-persisted + a no-flash
       inline script so a returning user with a dark preference doesn't see a light-theme flash on
       load. See [15-dark-mode.md](15-dark-mode.md).
-- [ ] Push notifications for budget alerts
+- [x] Push notifications for budget alerts — Expo push tokens (`User.pushTokens`), per-period alert
+      dedup (`Budget.lastAlertSentAt`), wired into every transaction-creation path (share-intent,
+      OCR, manual add). Mobile registers/unregisters on login/logout and app reopen, routes a
+      tapped alert to the Budgets tab. **Blocked on an EAS project not being configured yet** —
+      registration no-ops until `eas init` sets `app.json`'s `extra.eas.projectId`. See
+      [16-push-notifications.md](16-push-notifications.md).
 - [ ] Offline sync
 - [ ] CSV/PDF export
 - [ ] Onboarding flow

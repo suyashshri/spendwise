@@ -13,6 +13,7 @@ import {
   googleAuthSchema,
   refreshSchema,
   updateProfileSchema,
+  pushTokenSchema,
 } from "../utils/schemas";
 import { issueTokenPair, verifyRefreshToken, signAccessToken } from "../services/tokenService";
 import { reconvertTransactionsToBaseCurrency } from "../services/currencyMigration";
@@ -150,6 +151,32 @@ router.patch(
     }
 
     res.json({ user: user.toJSON() });
+  })
+);
+
+router.post(
+  "/push-token",
+  requireAuth,
+  validateBody(pushTokenSchema),
+  asyncHandler(async (req, res) => {
+    const { token } = req.body as { token: string };
+
+    // $addToSet, not $push — the same device can (and does, e.g. on every app launch) re-register
+    // its token; this keeps User.pushTokens a set rather than accumulating duplicates.
+    await User.updateOne({ _id: req.user!.id }, { $addToSet: { pushTokens: token } });
+    res.status(204).end();
+  })
+);
+
+router.delete(
+  "/push-token",
+  requireAuth,
+  validateBody(pushTokenSchema),
+  asyncHandler(async (req, res) => {
+    const { token } = req.body as { token: string };
+
+    await User.updateOne({ _id: req.user!.id }, { $pull: { pushTokens: token } });
+    res.status(204).end();
   })
 );
 

@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter } from 'expo-router';
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
+import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/hooks/useAuth';
+import { registerForPushNotifications } from '@/services/pushNotifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,6 +31,26 @@ function AppNavigator() {
       router.replace('/share-intent');
     }
   }, [hasShareIntent, isAuthenticated, router]);
+
+  // Covers app reopen with a session restored from SecureStore — login/register handle the
+  // freshly-authenticated case themselves (hooks/useAuth.ts). $addToSet on the backend makes this
+  // idempotent, so re-registering the same device's token on every mount is harmless.
+  useEffect(() => {
+    if (hasHydrated && isAuthenticated) {
+      void registerForPushNotifications();
+    }
+  }, [hasHydrated, isAuthenticated]);
+
+  // Tapping a budget-alert push jumps straight to the Budgets tab.
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as { type?: string } | undefined;
+      if (data?.type === 'budget_alert' && isAuthenticated) {
+        router.push('/(tabs)/budgets');
+      }
+    });
+    return () => subscription.remove();
+  }, [isAuthenticated, router]);
 
   if (!hasHydrated) {
     return null;
