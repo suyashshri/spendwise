@@ -132,6 +132,13 @@ Status: **in progress**
       identical output instead of each re-implementing it. Mobile: download-to-cache + native share
       sheet. Web: blob download via the existing BFF-lite-authenticated axios client. See
       [17-export.md](17-export.md).
+- [x] Mobile app downgraded from Expo SDK 57 to SDK 54 — user's iPhone reported Expo Go as
+      incompatible; chose a full downgrade over the simpler direct-Expo-Go-install-link fix. Forced
+      a rewrite of the CSV/PDF export's mobile download call (newer `expo-file-system` API not
+      available at this SDK) and repinned `expo-share-intent` to a compatible major version.
+      Uncovered and fixed two duplicate-React-instance bugs along the way (one crashing
+      `/share-intent`'s static export, one breaking web's typecheck) via root-level `overrides`. See
+      [18-sdk-downgrade.md](18-sdk-downgrade.md).
 - [ ] Onboarding flow
 
 ---

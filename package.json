@@ -18,5 +18,16 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "overrides": {
+    "@react-navigation/native": {
+      "react": "19.1.0"
+    },
+    "@react-navigation/bottom-tabs": {
+      "react": "19.1.0"
+    },
+    "@base-ui/react": {
+      "react": "19.2.8"
+    }
   }
 }

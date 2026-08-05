@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack, useRouter } from 'expo-router';
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
