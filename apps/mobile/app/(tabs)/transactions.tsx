@@ -64,8 +64,7 @@ export default function TransactionsScreen() {
             scaleTo={0.92}
             style={[styles.addButton, { backgroundColor: theme.primary, shadowColor: theme.primary }, Elevation.floating]}
           >
-            <Ionicons name="add" size={18} color="#fff" />
-            <ThemedText style={styles.addButtonText}>Add</ThemedText>
+            <Ionicons name="add" size={20} color="#fff" />
           </AnimatedPressable>
         </View>
       </View>
@@ -139,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 20,
   },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconButton: {
@@ -151,16 +150,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButton: {
-    flexDirection: 'row',
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    height: 36,
-    paddingHorizontal: 14,
     borderRadius: Radii.pill,
   },
-  addButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  filterRow: { alignItems: 'flex-start', gap: 8, paddingHorizontal: 20, paddingBottom: 14 },
+  filterRow: { alignItems: 'flex-start', gap: 8, paddingHorizontal: 20, paddingBottom: 18 },
   filterChip: { borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radii.pill },
   filterChipText: { fontSize: 13, fontWeight: '700' },
   list: { paddingHorizontal: 20, paddingBottom: FloatingTabBarSpace },
