@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { DEFAULT_CATEGORIES } from '@spendwise/shared';
+import { getCategoryMeta } from '@spendwise/shared';
 
 import { AnimatedPressable } from './AnimatedPressable';
+import { CreateCategoryModal } from './CreateCategoryModal';
 import { ThemedText } from './themed-text';
+import { useCategories } from '@/hooks/useCategories';
 import { useTheme } from '@/hooks/use-theme';
 import { Radii } from '@/constants/theme';
 
@@ -12,8 +14,10 @@ import { Radii } from '@/constants/theme';
  * where showing every category inline felt cluttered (e.g. the budgets add-form). */
 export function CategoryDropdown({ value, onChange }: { value: string; onChange: (category: string) => void }) {
   const theme = useTheme();
+  const { categories } = useCategories();
   const [open, setOpen] = useState(false);
-  const selected = DEFAULT_CATEGORIES.find((c) => c.name === value) ?? DEFAULT_CATEGORIES[0];
+  const [isCreating, setIsCreating] = useState(false);
+  const selected = categories.find((c) => c.name === value) ?? getCategoryMeta(value);
 
   return (
     <>
@@ -22,7 +26,7 @@ export function CategoryDropdown({ value, onChange }: { value: string; onChange:
         style={[styles.field, { borderColor: theme.border, backgroundColor: theme.surfaceElevated }]}
       >
         <ThemedText style={styles.icon}>{selected.icon}</ThemedText>
-        <ThemedText style={styles.fieldLabel}>{selected.name}</ThemedText>
+        <ThemedText style={styles.fieldLabel}>{value}</ThemedText>
         <Ionicons name="chevron-down" size={18} color={theme.textTertiary} />
       </AnimatedPressable>
 
@@ -36,11 +40,11 @@ export function CategoryDropdown({ value, onChange }: { value: string; onChange:
               </AnimatedPressable>
             </View>
             <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-              {DEFAULT_CATEGORIES.map((c) => {
+              {categories.map((c) => {
                 const isSelected = c.name === value;
                 return (
                   <AnimatedPressable
-                    key={c.name}
+                    key={c.id}
                     onPress={() => {
                       onChange(c.name);
                       setOpen(false);
@@ -54,10 +58,29 @@ export function CategoryDropdown({ value, onChange }: { value: string; onChange:
                   </AnimatedPressable>
                 );
               })}
+              <AnimatedPressable
+                onPress={() => {
+                  setOpen(false);
+                  setIsCreating(true);
+                }}
+                scaleTo={0.98}
+                style={styles.row}
+              >
+                <Ionicons name="add-circle-outline" size={20} color={theme.primary} />
+                <ThemedText themeColor="primary" style={styles.rowLabel}>
+                  New category
+                </ThemedText>
+              </AnimatedPressable>
             </ScrollView>
           </Pressable>
         </Pressable>
       </Modal>
+
+      <CreateCategoryModal
+        visible={isCreating}
+        onClose={() => setIsCreating(false)}
+        onCreated={(category) => onChange(category.name)}
+      />
     </>
   );
 }

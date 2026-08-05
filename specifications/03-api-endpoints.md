@@ -69,6 +69,14 @@ source, per [05-ai-categorization.md](05-ai-categorization.md):
 | GET | `/api/analytics/compare` | `?month1=6&month2=7&year=2026` | `{ month1: {...summary}, month2: {...summary}, delta }` |
 | GET | `/api/analytics/top-merchants` | `?month=7&year=2026&limit=10` | `[{ merchant, totalSpent, count }]` |
 
+## Categories (protected)
+
+| Method | Path | Body | Notes |
+|---|---|---|---|
+| GET | `/api/categories` | — | Default categories + the current user's own custom ones |
+| POST | `/api/categories` | `{ name, icon, color }` | `409` if `name` collides (case-insensitive) with a default or one of the user's own — see [13-custom-categories.md](13-custom-categories.md) |
+| DELETE | `/api/categories/:id` | — | Only the user's own custom categories; `404` for a default (query is scoped to `{_id, userId}`, and defaults have no `userId`) |
+
 ## Error shape
 
 All errors return `{ error: { message, code } }` with an appropriate HTTP status. See

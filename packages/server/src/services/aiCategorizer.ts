@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { Types } from "mongoose";
 import { config } from "../config/config";
 import { Category } from "../models/Category";
 import { buildParseTextPrompt } from "../utils/aiPrompts";
@@ -81,9 +82,13 @@ async function callGemini(prompt: string): Promise<AiParseResult> {
  * Parses raw UPI share text (or OCR'd screenshot text) into a structured transaction.
  * Never throws — falls back to a degraded, low-confidence result so the caller can
  * always save *something* rather than losing the user's transaction.
+ *
+ * `userId` scopes which categories are offered to the AI as valid `suggestedCategory` values —
+ * defaults plus *this* user's own custom categories (see routes/categories.ts). Fetching without
+ * a userId filter would leak every user's custom categories into everyone's prompt.
  */
-export async function categorizeTransactionText(rawText: string): Promise<AiParseResult> {
-  const categories = await Category.find({}, "name keywords").lean();
+export async function categorizeTransactionText(rawText: string, userId: Types.ObjectId): Promise<AiParseResult> {
+  const categories = await Category.find({ $or: [{ isDefault: true }, { userId }] }, "name keywords").lean();
   const prompt = buildParseTextPrompt(rawText, categories);
 
   try {

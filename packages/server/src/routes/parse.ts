@@ -32,7 +32,7 @@ async function parseAndSaveTransaction(
   rawText: string,
   inputType: TransactionInputType
 ): Promise<{ transaction: TransactionDocument; duplicate: boolean; budgetAlerts: Awaited<ReturnType<typeof checkBudgetsForTransaction>> }> {
-  const parsed: AiParseResult = await categorizeTransactionText(rawText);
+  const parsed: AiParseResult = await categorizeTransactionText(rawText, userId);
 
   if (parsed.upiRefId) {
     const existing = await Transaction.findOne({ userId, upiRefId: parsed.upiRefId });

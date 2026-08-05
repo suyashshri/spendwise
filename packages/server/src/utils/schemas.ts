@@ -67,3 +67,11 @@ export const updateBudgetSchema = z.object({
   alertAt: z.number().min(0).max(100).optional(),
   isActive: z.boolean().optional(),
 });
+
+export const createCategorySchema = z.object({
+  name: z.string().min(1).max(40),
+  icon: z.string().min(1).max(8),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "color must be a hex value like #6C5CE7"),
+});

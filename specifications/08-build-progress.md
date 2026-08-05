@@ -70,6 +70,23 @@ See [11-phase3-intelligence-layer.md](11-phase3-intelligence-layer.md) for the r
 algorithm and its known limitation (exact-string merchant matching — "Netflix" vs "NETFLIX.COM"
 wouldn't be linked).
 
+## Post-Phase-3 additions (user-requested, outside the phase numbering)
+
+Status: **complete**, verified end-to-end.
+
+- [x] Mobile UI redesign — real icons, elevation, gradients, motion (see
+      [10-mobile-design-system.md](10-mobile-design-system.md))
+- [x] In-app screenshot upload (`expo-image-picker`) — the OCR path from Phase 3 was share-intent-only
+      before, which needs a custom dev client to even test; added a reachable in-app entry point
+      (Home + Transactions tab) hitting the same `POST /api/parse/image` pipeline
+- [x] Multi-currency support — per-transaction currency, account-currency conversion via Frankfurter,
+      re-conversion on account-currency change (see [12-multi-currency.md](12-multi-currency.md))
+- [x] Custom categories — users can create their own categories beyond the 11 defaults; fixed an
+      AI-prompt category-leakage bug this surfaced (see
+      [13-custom-categories.md](13-custom-categories.md))
+- [x] Cross-platform confirm dialogs (`utils/confirm.ts`) — `Alert.alert` doesn't render on React
+      Native Web, so delete/logout confirmations silently did nothing on web
+
 ## Phase 4 — Web Dashboard
 
 Status: **not started**

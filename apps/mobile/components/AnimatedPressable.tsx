@@ -16,7 +16,7 @@ export function AnimatedPressable({
   scaleTo = 0.96,
   children,
   ...props
-}: PressableProps & { style?: StyleProp<ViewStyle>; scaleTo?: number; children: React.ReactNode }) {
+}: PressableProps & { style?: StyleProp<ViewStyle>; scaleTo?: number; children?: React.ReactNode }) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const animateTo = (value: number) =>

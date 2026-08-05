@@ -30,7 +30,10 @@ Indexes: `{ email: 1 }` unique.
 {
   _id: ObjectId,
   userId: ObjectId,            // ref -> User, indexed
-  amount: number,               // required, in user's currency
+  amount: number,               // required, in `currency` (NOT necessarily the user's account currency)
+  currency: string,             // ISO 4217, default "INR" — see specifications/12-multi-currency.md
+  amountInBaseCurrency: number, // `amount` converted to the user's account currency AT SAVE TIME (never recomputed)
+  exchangeRate: number,         // the currency -> account-currency rate used, default 1
   merchant: string,             // required, extracted by AI (e.g., "Swiggy")
   category: string,             // AI-assigned or user-chosen, indexed (e.g., "Food & Dining")
   rawInput: string,             // original shared text or OCR output (debugging/reprocessing)
@@ -76,20 +79,23 @@ category+period per user (prevents duplicate/conflicting budgets for the same sc
 `Transaction` for the current period, so it's always accurate against edits/deletes. See
 `GET /api/budgets` in [03-api-endpoints.md](03-api-endpoints.md).
 
-## Category (`models/Category.ts`, seed data)
+## Category (`models/Category.ts`, seed data + user-created)
 
 ```ts
 {
   _id: ObjectId,
-  name: string,                 // required, unique (e.g., "Food & Dining")
+  name: string,                 // required (e.g., "Food & Dining")
   icon: string,                 // emoji (e.g., "🍔")
   color: string,                // hex color for charts (e.g., "#FF6B6B")
-  keywords: string[],           // AI hint keywords (e.g., ["swiggy", "zomato", "restaurant"])
-  isDefault: boolean            // true for system categories, false for user-created
+  keywords: string[],           // AI hint keywords (e.g., ["swiggy", "zomato", "restaurant"]); empty for user-created
+  isDefault: boolean,           // true for system categories, false for user-created
+  userId?: ObjectId             // absent for defaults; set to the owner for user-created categories
 }
 ```
 
-Indexes: `{ name: 1 }` unique.
+Indexes: compound unique `{ userId: 1, name: 1 }` (not a bare unique on `name`) — lets different
+users each have a category of the same name without colliding, while defaults (all `userId`-absent)
+stay mutually unique among themselves. See [13-custom-categories.md](13-custom-categories.md).
 
 ### Default categories (seeded by `packages/server/src/utils/seedCategories.ts`)
 

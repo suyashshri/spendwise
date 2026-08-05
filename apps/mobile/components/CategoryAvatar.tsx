@@ -2,9 +2,14 @@ import { StyleSheet, View } from 'react-native';
 import { getCategoryMeta } from '@spendwise/shared';
 
 import { ThemedText } from './themed-text';
+import { useCategoryStore } from '@/store/categoryStore';
 
 export function CategoryAvatar({ category, size = 44 }: { category: string; size?: number }) {
-  const { icon, color } = getCategoryMeta(category);
+  // Reactive lookup against fetched categories (defaults + this user's custom ones) — falls back
+  // to the static shared defaults (e.g. before the first fetch resolves, or for a category that
+  // no longer exists) rather than showing nothing.
+  const match = useCategoryStore((s) => s.categories.find((c) => c.name === category));
+  const { icon, color } = match ?? getCategoryMeta(category);
 
   return (
     <View

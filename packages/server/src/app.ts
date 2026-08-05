@@ -5,6 +5,7 @@ import parseRoutes from "./routes/parse";
 import transactionRoutes from "./routes/transactions";
 import budgetRoutes from "./routes/budgets";
 import analyticsRoutes from "./routes/analytics";
+import categoryRoutes from "./routes/categories";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 
 export function createApp(): Express {
@@ -22,6 +23,7 @@ export function createApp(): Express {
   app.use("/api/transactions", transactionRoutes);
   app.use("/api/budgets", budgetRoutes);
   app.use("/api/analytics", analyticsRoutes);
+  app.use("/api/categories", categoryRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

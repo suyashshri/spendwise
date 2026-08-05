@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DEFAULT_CATEGORY_NAMES, type BudgetPeriod } from '@spendwise/shared';
+import type { BudgetPeriod } from '@spendwise/shared';
 
 import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { BudgetProgressBar } from '@/components/BudgetProgressBar';
@@ -16,6 +16,7 @@ import { FloatingTabBarSpace, Radii } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useBudgets } from '@/hooks/useBudgets';
+import { useCategories } from '@/hooks/useCategories';
 import { useMonthlyTransactions } from '@/hooks/useTransactions';
 import { extractApiErrorMessage } from '@/services/api';
 import { confirmAction } from '@/utils/confirm';
@@ -146,16 +147,17 @@ function CategoryBudgets({
   currency?: string;
 }) {
   const theme = useTheme();
+  const { categories } = useCategories();
   const [isAdding, setIsAdding] = useState(false);
-  const [category, setCategory] = useState<string>(DEFAULT_CATEGORY_NAMES[0]);
+  const [category, setCategory] = useState<string>(categories[0]?.name ?? 'Miscellaneous');
   const [period, setPeriod] = useState<BudgetPeriod>('monthly');
   const [limit, setLimit] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const availableCategories = DEFAULT_CATEGORY_NAMES.filter(
-    (c) => !budgets.some((b) => b.category === c && b.period === period)
-  );
+  const availableCategories = categories
+    .map((c) => c.name)
+    .filter((c) => !budgets.some((b) => b.category === c && b.period === period));
 
   const onSubmit = async () => {
     const value = Number(limit);

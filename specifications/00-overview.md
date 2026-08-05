@@ -60,6 +60,8 @@ See [01-monorepo-structure.md](01-monorepo-structure.md) for the full tree.
 | [09-mobile-app.md](09-mobile-app.md) | Mobile app architecture — screens, stores, share-intent wiring |
 | [10-mobile-design-system.md](10-mobile-design-system.md) | Mobile design tokens, primitives, and two layout bugs caught during the UI pass |
 | [11-phase3-intelligence-layer.md](11-phase3-intelligence-layer.md) | OCR, budgets CRUD, analytics, recurring detection |
+| [12-multi-currency.md](12-multi-currency.md) | Per-transaction currency, conversion, exchange rate service |
+| [13-custom-categories.md](13-custom-categories.md) | User-created categories, AI prompt scoping fix |
 
 ## Build phases (from the original brief)
 

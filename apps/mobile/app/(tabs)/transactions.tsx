@@ -3,12 +3,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DEFAULT_CATEGORY_NAMES } from '@spendwise/shared';
 
 import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { ThemedText } from '@/components/themed-text';
 import { TransactionCard } from '@/components/TransactionCard';
 import { Elevation, FloatingTabBarSpace, Radii } from '@/constants/theme';
+import { useCategories } from '@/hooks/useCategories';
 import { useTheme } from '@/hooks/use-theme';
 import { useScreenshotUpload } from '@/hooks/useScreenshotUpload';
 import { useTransactionStore } from '@/store/transactionStore';
@@ -21,6 +21,7 @@ export default function TransactionsScreen() {
   const transactions = useTransactionStore((s) => s.transactions);
   const isLoading = useTransactionStore((s) => s.isLoading);
   const fetchTransactions = useTransactionStore((s) => s.fetchTransactions);
+  const { categories } = useCategories();
   const { uploadScreenshot, isUploading } = useScreenshotUpload();
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
 
@@ -65,7 +66,7 @@ export default function TransactionsScreen() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterRow}
       >
-        {[ALL, ...DEFAULT_CATEGORY_NAMES].map((category) => {
+        {[ALL, ...categories.map((c) => c.name)].map((category) => {
           const selected = category === activeCategory;
           return (
             <AnimatedPressable
